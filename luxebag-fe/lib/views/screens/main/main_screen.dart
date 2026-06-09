@@ -55,19 +55,36 @@ class _MainScreenState extends State<MainScreen> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () => setState(() => _currentIndex = 2),
-                child: Badge(
-                  isLabelVisible: cart.totalItems > 0,
-                  label: Text(
-                    cart.totalItems > 9 ? '9+' : '${cart.totalItems}',
-                    style: const TextStyle(fontSize: 9),
-                  ),
-                  backgroundColor: Colors.white,
-                  textColor: AppColors.primary,
-                  child: const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    if (cart.totalItems > 0)
+                      Positioned(
+                        right: -6,
+                        top: -6,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            cart.totalItems > 9 ? '9+' : '${cart.totalItems}',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

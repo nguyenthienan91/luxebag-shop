@@ -18,8 +18,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _postalController = TextEditingController();
 
   // Payment method
   String _paymentMethod = 'cod';
@@ -31,8 +29,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
-    _cityController.dispose();
-    _postalController.dispose();
     super.dispose();
   }
 
@@ -205,36 +201,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ? 'Please enter your address'
                   : null,
             ),
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildTextField(
-                    controller: _cityController,
-                    label: 'City',
-                    hint: 'Ho Chi Minh City',
-                    icon: Icons.location_city_outlined,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _postalController,
-                    label: 'Postal Code',
-                    hint: '70000',
-                    icon: Icons.markunread_mailbox_outlined,
-                    keyboardType: TextInputType.number,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 28),
 
             // ── Payment Method ──────────────────────────────────────────

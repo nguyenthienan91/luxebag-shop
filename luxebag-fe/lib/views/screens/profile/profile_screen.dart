@@ -323,6 +323,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // ── Quick Links ───────────────────────────────────────────
               _ActionTile(
+                icon: Icons.store_outlined,
+                label: 'Store Location',
+                onTap: () => context.push('/store-map'),
+              ),
+              const Divider(height: 1, color: AppColors.divider),
+              _ActionTile(
                 icon: Icons.help_outline_rounded,
                 label: 'Help & Support',
                 onTap: () {},
