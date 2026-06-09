@@ -59,153 +59,155 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           orElse: () => _product!,
         );
 
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: Stack(
-            children: [
-              // ── Scrollable content ──────────────────────────────────
-              CustomScrollView(
-                slivers: [
-                  // Image carousel header
-                  SliverToBoxAdapter(
-                    child: _ImageCarousel(
-                      images: product.images,
-                      currentIndex: _currentImageIndex,
-                      pageController: _pageController,
-                      onPageChanged: (i) =>
-                          setState(() => _currentImageIndex = i),
-                      onBack: () => context.pop(),
-                      isWishlisted: product.isWishlisted,
-                      onWishlistTap: () => vm.toggleWishlist(product.id),
-                    ),
-                  ),
-
-                  // Product info
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Brand
-                          Text(
-                            product.brand.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              letterSpacing: 2,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-
-                          // Title
-                          Text(
-                            product.title,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                              height: 1.3,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-
-                          // SKU
-                          Text(
-                            'SKU: ${product.sku}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textHint,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Price row
-                          _PriceRow(product: product),
-                          const SizedBox(height: 20),
-
-                          // Badges row
-                          _BadgesRow(product: product),
-                          const SizedBox(height: 24),
-
-                          const Divider(color: AppColors.divider),
-                          const SizedBox(height: 20),
-
-                          // Details section
-                          const Text(
-                            'Product Details',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _DetailRow(
-                            label: 'Material',
-                            value: product.material,
-                          ),
-                          _DetailRow(
-                            label: 'Size',
-                            value: product.sizeInfo ?? '-',
-                          ),
-                          _DetailRow(
-                            label: 'Size Category',
-                            value: product.sizeCategory,
-                          ),
-                          _DetailRow(label: 'Gender', value: product.gender),
-                          _DetailRow(
-                            label: 'Condition',
-                            value: product.condition,
-                          ),
-                          _DetailRow(
-                            label: 'Department',
-                            value: product.department,
-                          ),
-                          if (product.saleEventName != null)
-                            _DetailRow(
-                              label: 'Sale Event',
-                              value: product.saleEventName!,
-                            ),
-                          const SizedBox(height: 20),
-
-                          const Divider(color: AppColors.divider),
-                          const SizedBox(height: 20),
-
-                          // Description
-                          const Text(
-                            'Description',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            product.description,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                              height: 1.7,
-                            ),
-                          ),
-                        ],
+        return ScaffoldMessenger(
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            body: Stack(
+              children: [
+                // ── Scrollable content ──────────────────────────────────
+                CustomScrollView(
+                  slivers: [
+                    // Image carousel header
+                    SliverToBoxAdapter(
+                      child: _ImageCarousel(
+                        images: product.images,
+                        currentIndex: _currentImageIndex,
+                        pageController: _pageController,
+                        onPageChanged: (i) =>
+                            setState(() => _currentImageIndex = i),
+                        onBack: () => context.pop(),
+                        isWishlisted: product.isWishlisted,
+                        onWishlistTap: () => vm.toggleWishlist(product.id),
                       ),
                     ),
-                  ),
-                ],
-              ),
 
-              // ── Bottom Action Bar ───────────────────────────────────
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _BottomBar(product: product),
-              ),
-            ],
+                    // Product info
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Brand
+                            Text(
+                              product.brand.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                letterSpacing: 2,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Title
+                            Text(
+                              product.title,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+
+                            // SKU
+                            Text(
+                              'SKU: ${product.sku}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textHint,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Price row
+                            _PriceRow(product: product),
+                            const SizedBox(height: 20),
+
+                            // Badges row
+                            _BadgesRow(product: product),
+                            const SizedBox(height: 24),
+
+                            const Divider(color: AppColors.divider),
+                            const SizedBox(height: 20),
+
+                            // Details section
+                            const Text(
+                              'Product Details',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _DetailRow(
+                              label: 'Material',
+                              value: product.material,
+                            ),
+                            _DetailRow(
+                              label: 'Size',
+                              value: product.sizeInfo ?? '-',
+                            ),
+                            _DetailRow(
+                              label: 'Size Category',
+                              value: product.sizeCategory,
+                            ),
+                            _DetailRow(label: 'Gender', value: product.gender),
+                            _DetailRow(
+                              label: 'Condition',
+                              value: product.condition,
+                            ),
+                            _DetailRow(
+                              label: 'Department',
+                              value: product.department,
+                            ),
+                            if (product.saleEventName != null)
+                              _DetailRow(
+                                label: 'Sale Event',
+                                value: product.saleEventName!,
+                              ),
+                            const SizedBox(height: 20),
+
+                            const Divider(color: AppColors.divider),
+                            const SizedBox(height: 20),
+
+                            // Description
+                            const Text(
+                              'Description',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              product.description,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                                height: 1.7,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ── Bottom Action Bar ───────────────────────────────────
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: _BottomBar(product: product),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -628,6 +630,7 @@ class _BottomBar extends StatelessWidget {
               onPressed: product.inStock
                   ? () {
                       context.read<CartViewModel>().addToCart(product);
+                      ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: const Text('Added to bag!'),
