@@ -6,6 +6,7 @@ import { Order, OrderSchema } from './entities/order.entity'
 import { CartModule } from '../cart/cart.module'
 import { InventoryModule } from '../inventory/inventory.module'
 import { ProductModule } from '../products/product.module'
+import { PaginationUtilModule } from '../../../common/utils/pagination-util/pagination-util.module'
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ProductModule } from '../products/product.module'
     CartModule,
     InventoryModule,
     ProductModule,
+    PaginationUtilModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],
