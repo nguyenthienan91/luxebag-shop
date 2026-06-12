@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import type { Model, UpdateQuery } from 'mongoose'
 import { User, UserDocument } from './entities/user.entity'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { CloudinaryService } from '../../../common/services/cloudinary/cloudinary.service'
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async getUser(filter: Partial<User> & Record<string, any>): Promise<UserDocument | null> {
     return this.userModel.findOne(filter).exec()
@@ -44,5 +48,25 @@ export class UsersService {
 
   remove(id: string) {
     return this.deleteById(id)
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File): Promise<UserDocument> {
+    const user = await this.userModel.findById(userId).exec()
+    if (!user) throw new NotFoundException(`User ${userId} not found`)
+
+    // Xóa ảnh cũ trên Cloudinary nếu có
+    if (user.avatar) {
+      const publicId = this.cloudinaryService.extractPublicId(user.avatar)
+      if (publicId) await this.cloudinaryService.deleteImage(publicId)
+    }
+
+    // Upload ảnh mới vào thư mục luxebag/avatars
+    const result = await this.cloudinaryService.uploadToFolder(file, 'luxebag/avatars')
+
+    // Cập nhật avatar URL trong DB và trả về user (không có password)
+    return this.userModel
+      .findByIdAndUpdate(userId, { avatar: result.secure_url }, { returnDocument: 'after' })
+      .select('-password')
+      .exec() as Promise<UserDocument>
   }
 }

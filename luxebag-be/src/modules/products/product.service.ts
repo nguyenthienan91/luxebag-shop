@@ -6,12 +6,15 @@ import { CreateProductDto } from './dto/create-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { PaginationUtilService } from '../../../common/utils/pagination-util/pagination-util.service'
 import { InventoryService } from '../inventory/inventory.service'
+import { CloudinaryService } from '../../../common/services/cloudinary/cloudinary.service'
 
 export interface FindAllProductsParams {
   page?: number
   itemPerPage?: number
   categoryId?: string
   search?: string
+  minPrice?: number
+  maxPrice?: number
 }
 
 @Injectable()
@@ -20,10 +23,11 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private readonly paginationUtil: PaginationUtilService,
     private readonly inventoryService: InventoryService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async findAll(params: FindAllProductsParams) {
-    const { page = 1, itemPerPage = 10, categoryId, search } = params
+    const { page = 1, itemPerPage = 10, categoryId, search, minPrice, maxPrice } = params
 
     const filter: Record<string, any> = { _destroy: false }
 
@@ -33,6 +37,12 @@ export class ProductService {
 
     if (search) {
       filter.title = { $regex: search, $options: 'i' }
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.currentPrice = {}
+      if (minPrice !== undefined) filter.currentPrice.$gte = minPrice
+      if (maxPrice !== undefined) filter.currentPrice.$lte = maxPrice
     }
 
     const totalItems = await this.productModel.countDocuments(filter)
@@ -48,10 +58,14 @@ export class ProductService {
     return pagination.format(list)
   }
 
-  async findById(id: string): Promise<ProductDocument> {
+  async findById(id: string) {
     const product = await this.productModel.findOne({ _id: id, _destroy: false }).populate('categoryId').exec()
     if (!product) throw new NotFoundException(`Product ${id} not found`)
-    return product
+
+    const inventory = await this.inventoryService.findByProduct(id).catch(() => null)
+    const stock = inventory?.stock ?? 0
+
+    return { ...product.toObject(), stock }
   }
 
   async create(dto: CreateProductDto): Promise<ProductDocument> {
@@ -75,5 +89,31 @@ export class ProductService {
       .exec()
     if (!product) throw new NotFoundException(`Product ${id} not found`)
     return product
+  }
+
+  async uploadImages(productId: string, files: Express.Multer.File[]): Promise<ProductDocument> {
+    const product = await this.productModel.findOne({ _id: productId, _destroy: false }).exec()
+    if (!product) throw new NotFoundException(`Product ${productId} not found`)
+
+    // Xóa ảnh cũ trên Cloudinary (nếu có)
+    if (product.images?.length) {
+      await Promise.all(
+        product.images.map((url) => {
+          const publicId = this.cloudinaryService.extractPublicId(url)
+          return publicId ? this.cloudinaryService.deleteImage(publicId) : Promise.resolve()
+        }),
+      )
+    }
+
+    // Upload song song tất cả ảnh mới vào luxebag/products
+    const uploadResults = await Promise.all(
+      files.map((file) => this.cloudinaryService.uploadToFolder(file, 'luxebag/products')),
+    )
+    const newImageUrls = uploadResults.map((r) => r.secure_url)
+
+    // Cập nhật mảng images trong DB
+    return this.productModel
+      .findByIdAndUpdate(productId, { images: newImageUrls }, { returnDocument: 'after' })
+      .exec() as Promise<ProductDocument>
   }
 }

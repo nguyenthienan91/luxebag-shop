@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import type { Model } from 'mongoose'
 import { Types } from 'mongoose'
 import { Inventory, InventoryDocument } from './entities/inventory.entity'
-import { Product, ProductDocument } from '../products/entities/product.entity'
+import { Product, ProductDocument, StockStatus } from '../products/entities/product.entity'
 
 @Injectable()
 export class InventoryService {
@@ -37,6 +37,11 @@ export class InventoryService {
       )
       .exec()
     if (!inventory) throw new NotFoundException(`Inventory for product ${productId} not found`)
+
+    // Tự động đồng bộ stockStatus trên product
+    const newStatus = stock === 0 ? StockStatus.OUT_OF_STOCK : StockStatus.IN_STOCK
+    await this.productModel.findByIdAndUpdate(productId, { stockStatus: newStatus }).exec()
+
     return inventory
   }
 
