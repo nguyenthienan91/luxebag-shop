@@ -41,8 +41,9 @@ export class OrderController {
 
   // GET /orders — lấy lịch sử đơn hàng của user
   @Get()
-  async findMyOrders(@User() user: UserInfo) {
-    return okResponse(await this.orderService.findByUser(user.userID))
+  @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
+  async findMyOrders(@User() user: UserInfo, @Query('status') status?: OrderStatus) {
+    return okResponse(await this.orderService.findByUser(user.userID, status))
   }
 
   // GET /orders/:id

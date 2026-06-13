@@ -76,7 +76,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         onPageChanged: (i) =>
                             setState(() => _currentImageIndex = i),
                         onBack: () => context.pop(),
-                        isWishlisted: product.isWishlisted,
+                        isWishlisted: vm.isFavorited(product.id),
                         onWishlistTap: () => vm.toggleWishlist(product.id),
                       ),
                     ),
@@ -628,8 +628,10 @@ class _BottomBar extends StatelessWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: product.inStock
-                  ? () {
-                      context.read<CartViewModel>().addToCart(product);
+                  ? () async {
+                      final success = await context.read<CartViewModel>().addToCart(product.id, 1);
+                      if (!context.mounted) return;
+                      
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -641,7 +643,7 @@ class _BottomBar extends StatelessWidget {
                           ),
                           duration: const Duration(seconds: 2),
                           action: SnackBarAction(
-                            label: 'View Bag',
+                            label: 'View Cart',
                             textColor: Colors.white,
                             onPressed: () => context.push('/cart'),
                           ),
@@ -659,13 +661,19 @@ class _BottomBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 elevation: 0,
               ),
-              child: Text(
-                product.inStock ? 'Add to Cart' : 'Out of Stock',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: context.watch<CartViewModel>().isItemLoading(product.id)
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(
+                      product.inStock ? 'Add to Cart' : 'Out of Stock',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ],

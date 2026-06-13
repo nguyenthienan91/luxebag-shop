@@ -44,9 +44,13 @@ export class OrderService {
   }
 
   // [USER] GET /orders — lấy đơn hàng của user
-  async findByUser(userId: string): Promise<OrderDocument[]> {
+  async findByUser(userId: string, status?: OrderStatus): Promise<OrderDocument[]> {
+    const filter: Record<string, any> = { userId: new Types.ObjectId(userId) }
+    if (status) {
+      filter.status = status
+    }
     return this.orderModel
-      .find({ userId: new Types.ObjectId(userId) })
+      .find(filter)
       .sort({ createdAt: -1 })
       .exec()
   }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/product_viewmodel.dart';
 import '../../../viewmodels/notification_viewmodel.dart';
+import '../../../viewmodels/cart_viewmodel.dart';
 import '../../widgets/product/product_card.dart';
 import '../../widgets/product/product_skeleton.dart';
 
@@ -16,6 +17,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
@@ -29,14 +32,29 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
+    if (_scrollController.offset >= 400 && !_showScrollToTop) {
+      setState(() => _showScrollToTop = true);
+    } else if (_scrollController.offset < 400 && _showScrollToTop) {
+      setState(() => _showScrollToTop = false);
+    }
+
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       context.read<ProductViewModel>().loadMore();
     }
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -49,14 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
         scrolledUnderElevation: 1,
         shadowColor: AppColors.divider,
         surfaceTintColor: Colors.white,
-        leading: const Padding(
-          padding: EdgeInsets.only(left: 8),
-          child: Icon(
-            Icons.shopping_bag_outlined,
-            size: 32,
-            color: AppColors.textPrimary,
-          ),
-        ),
         title: const Text(
           'LUXEBAG',
           style: TextStyle(
@@ -90,18 +100,145 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(57),
+          preferredSize: const Size.fromHeight(115),
           child: Column(
             children: [
               const Divider(height: 1, color: AppColors.divider),
-              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                child: Row(
+                  children: [
+                    Expanded(child: _SearchBar(controller: _searchController)),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.tune_rounded, color: AppColors.textPrimary),
+                      onPressed: () => _showFilterBottomSheet(context),
+                    ),
+                  ],
+                ),
+              ),
               _CategoryTabs(),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
             ],
           ),
         ),
       ),
+      floatingActionButton: _showScrollToTop
+          ? FloatingActionButton(
+              onPressed: _scrollToTop,
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shape: const CircleBorder(
+                side: BorderSide(color: AppColors.divider, width: 3),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_up_rounded,
+                size: 36,
+              ),
+            )
+          : null,
       body: _buildBody(),
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    final vm = context.read<ProductViewModel>();
+    double currentMin = vm.minPrice ?? 0;
+    double currentMax = vm.maxPrice ?? 5000;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Lọc theo giá',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('\$${currentMin.toInt()}'),
+                      Text('\$${currentMax.toInt()}+'),
+                    ],
+                  ),
+                  RangeSlider(
+                    values: RangeValues(currentMin, currentMax),
+                    min: 0,
+                    max: 5000,
+                    divisions: 100,
+                    activeColor: AppColors.primary,
+                    inactiveColor: AppColors.divider,
+                    onChanged: (RangeValues values) {
+                      setModalState(() {
+                        currentMin = values.start;
+                        currentMax = values.end;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        vm.setPriceRange(currentMin, currentMax);
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Áp dụng', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        vm.clearFilters();
+                        _searchController.clear();
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Xóa bộ lọc', style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                  )
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -110,7 +247,10 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, vm, _) {
         if (vm.isLoading) return _SkeletonGrid();
         if (vm.errorMessage != null) {
-          return _ErrorView(message: vm.errorMessage!, onRetry: vm.loadInitial);
+          return _ErrorView(
+            message: vm.errorMessage!,
+            onRetry: vm.fetchProducts,
+          );
         }
         if (vm.products.isEmpty) return const _EmptyView();
         return _ProductGrid(vm: vm, scrollController: _scrollController);
@@ -195,7 +335,9 @@ class _CategoryTabs extends StatelessWidget {
             itemCount: vm.categories.length,
             itemBuilder: (context, index) {
               final cat = vm.categories[index];
-              final isSelected = vm.selectedCategoryId == cat.id;
+              final isSelected = cat.id == 'all'
+                  ? vm.selectedCategoryId == null
+                  : vm.selectedCategoryId == cat.id;
               return GestureDetector(
                 onTap: () => vm.selectCategory(cat.id),
                 child: Container(

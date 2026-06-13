@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/auth_viewmodel.dart';
+import '../../../viewmodels/cart_viewmodel.dart';
+import '../../../viewmodels/product_viewmodel.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -63,6 +67,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isEditing = false);
   }
 
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (pickedFile == null) return;
+    if (!mounted) return;
+
+    final success = await context
+        .read<AuthViewModel>()
+        .uploadAvatar(File(pickedFile.path));
+
+    if (!mounted) return;
+    if (!success) {
+      final errMsg =
+          context.read<AuthViewModel>().errorMessage ?? 'Upload thất bại.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errMsg),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    }
+  }
+
   void _logout() {
     showDialog<bool>(
       context: context,
@@ -84,6 +117,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              context.read<CartViewModel>().clearCart();
+              context.read<ProductViewModel>().clearWishlist();
               context.read<AuthViewModel>().logout();
               context.go('/login');
             },
@@ -104,6 +139,87 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authVM = context.watch<AuthViewModel>();
     final user = authVM.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'My Profile',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          centerTitle: true,
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, color: AppColors.divider),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.account_circle_outlined,
+                  size: 80,
+                  color: AppColors.textHint,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Bạn chưa đăng nhập',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Vui lòng đăng nhập để quản lý thông tin cá nhân, đơn hàng và danh sách yêu thích.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 36),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Sign In / Sign Up',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 48), // Lift it up a bit from the bottom nav
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -178,17 +294,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Positioned(
                       bottom: 0,
                       right: 0,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 16,
-                          color: Colors.white,
+                      child: GestureDetector(
+                        onTap: authVM.isLoading ? null : _pickAndUploadAvatar,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: authVM.isLoading
+                              ? const Padding(
+                                  padding: EdgeInsets.all(6),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.camera_alt,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
                         ),
                       ),
                     ),

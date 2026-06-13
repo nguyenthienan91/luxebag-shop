@@ -8,6 +8,8 @@ import '../cart/cart_screen.dart';
 import '../order/order_history_screen.dart';
 import '../profile/profile_screen.dart';
 
+final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -17,6 +19,20 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartViewModel>().fetchCart();
+    });
+  }
+
+  void switchTab(int index) {
+    if (mounted) {
+      setState(() => _currentIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,22 +80,22 @@ class _MainScreenState extends State<MainScreen> {
                       color: Colors.white,
                       size: 32,
                     ),
-                    if (cart.totalItems > 0)
+                    if (cart.totalCartItems > 0)
                       Positioned(
-                        right: -6,
-                        top: -6,
+                        right: -4,
+                        top: -4,
                         child: Container(
-                          padding: const EdgeInsets.all(3),
+                          padding: const EdgeInsets.all(5),
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
                           ),
                           child: Text(
-                            cart.totalItems > 9 ? '9+' : '${cart.totalItems}',
+                            cart.totalCartItems > 9 ? '9+' : '${cart.totalCartItems}',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 12,
                               color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
                         ),

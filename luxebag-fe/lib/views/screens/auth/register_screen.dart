@@ -36,15 +36,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authVM = context.read<AuthViewModel>();
-    final success = await authVM.register(
-      _nameController.text.trim(),
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+    final success = await authVM.signUp({
+      'displayName': _nameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'password': _passwordController.text,
+    });
 
     if (!mounted) return;
     if (success) {
-      context.go('/home');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            '🎉 Đăng ký tài khoản thành công! Vui lòng đăng nhập.',
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      context.go('/login');
     } else if (authVM.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

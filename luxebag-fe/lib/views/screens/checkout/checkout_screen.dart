@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
+import '../../../viewmodels/order_viewmodel.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -37,14 +38,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     setState(() => _isPlacingOrder = true);
 
-    // TODO: call POST /orders/checkout API
-    await Future.delayed(const Duration(milliseconds: 1500));
+    final cartVM = context.read<CartViewModel>();
+    final orderVM = context.read<OrderViewModel>();
+
+    // Mapping từ Radio value sang giá trị Backend Enum (nếu cần)
+    String backendPaymentMethod = _paymentMethod == 'card'
+        ? 'CARD'
+        : 'COD';
+
+    final success = await orderVM.checkout(
+      _addressController.text.trim(),
+      backendPaymentMethod,
+      cartVM,
+    );
 
     if (!mounted) return;
     setState(() => _isPlacingOrder = false);
 
-    context.read<CartViewModel>().clearCart();
-    _showSuccessDialog();
+    if (success) {
+      _showSuccessDialog();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text((orderVM.errorMessage?.isNotEmpty ?? false) ? orderVM.errorMessage! : 'Checkout failed.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   void _showSuccessDialog() {

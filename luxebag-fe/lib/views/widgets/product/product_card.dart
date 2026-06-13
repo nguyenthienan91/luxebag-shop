@@ -208,6 +208,8 @@ class _WishlistButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFavorited = context.watch<ProductViewModel>().isFavorited(product.id);
+
     return GestureDetector(
       onTap: () => context.read<ProductViewModel>().toggleWishlist(product.id),
       child: Container(
@@ -218,9 +220,9 @@ class _WishlistButton extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child: Icon(
-          product.isWishlisted ? Icons.favorite : Icons.favorite_border,
+          isFavorited ? Icons.favorite : Icons.favorite_border,
           size: 17,
-          color: product.isWishlisted ? Colors.red : AppColors.textSecondary,
+          color: isFavorited ? Colors.red : AppColors.textSecondary,
         ),
       ),
     );

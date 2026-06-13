@@ -1,80 +1,132 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/cart_item_model.dart';
-import '../models/product_model.dart';
+import '../repositories/cart_repository.dart';
 
 class CartViewModel extends ChangeNotifier {
-  final List<CartItemModel> _items = [];
+  final CartRepository _repository;
+
+  CartViewModel({CartRepository? repository})
+      : _repository = repository ?? CartRepository();
+
+  List<CartItemModel> _cartItems = [];
   bool _isLoading = false;
   String? _errorMessage;
+  final Set<String> _loadingItems = {}; // Khóa nút bấm từng item
 
-  List<CartItemModel> get items => List.unmodifiable(_items);
+  List<CartItemModel> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isEmpty => _items.isEmpty;
-  int get totalItems => _items.fold(0, (sum, item) => sum + item.quantity);
 
-  double get subtotal => _items.fold(0, (sum, item) => sum + item.subtotal);
+  int get totalCartItems => _cartItems.length;
 
-  double get shippingFee {
-    if (_items.isEmpty) return 0;
-    final hasFreeShipping = subtotal >= 500;
-    return hasFreeShipping ? 0 : 15;
-  }
+  double get totalAmount => _cartItems.fold(
+      0, (sum, item) => sum + (item.product.currentPrice * item.quantity));
 
+  // ── Alias getters/methods tương thích UI cũ ──
+  List<CartItemModel> get items => _cartItems;
+  bool get isEmpty => _cartItems.isEmpty;
+  int get totalItems => totalCartItems;
+  double get subtotal => totalAmount;
+  double get shippingFee => totalAmount == 0 ? 0 : (totalAmount >= 500 ? 0 : 15.0);
   double get total => subtotal + shippingFee;
 
-  void addToCart(ProductModel product) {
-    final idx = _items.indexWhere((e) => e.productId == product.id);
-    if (idx >= 0) {
-      _items[idx] = _items[idx].copyWith(quantity: _items[idx].quantity + 1);
-    } else {
-      _items.add(
-        CartItemModel(
-          productId: product.id,
-          title: product.title,
-          brand: product.brand,
-          thumbnailUrl: product.thumbnailUrl,
-          price: product.currentPrice,
-          originalPrice: product.isOnSale ? product.retailPrice : null,
-        ),
-      );
-    }
+  void clearCart() {
+    _cartItems.clear();
     notifyListeners();
   }
 
-  void updateQuantity(String productId, int quantity) {
-    if (quantity <= 0) {
-      removeItem(productId);
-      return;
-    }
-    final idx = _items.indexWhere((e) => e.productId == productId);
-    if (idx >= 0) {
-      _items[idx] = _items[idx].copyWith(quantity: quantity);
+  Future<void> updateQuantity(String productId, int quantity) =>
+      updateCartQuantity(productId, quantity);
+
+  Future<void> removeItem(String productId) => removeFromCart(productId);
+
+  bool isItemLoading(String productId) => _loadingItems.contains(productId);
+
+  Future<void> fetchCart() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _cartItems = await _repository.fetchCart();
+      print('=== DEBUG CART: fetchCart SUCCESS, items: ${_cartItems.length} ===');
+    } catch (e, stack) {
+      print('=== DEBUG CART ERROR ===');
+      print(e);
+      print(stack);
+      print('========================');
+      _errorMessage = _parseError(e);
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  void removeItem(String productId) {
-    _items.removeWhere((e) => e.productId == productId);
+  Future<bool> addToCart(String productId, int quantity) async {
+    _loadingItems.add(productId);
     notifyListeners();
+
+    try {
+      await _repository.addToCart(productId, quantity);
+      await fetchCart(); // Refresh toàn bộ giỏ hàng để lấy info populate
+      return true;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      notifyListeners();
+      return false;
+    } finally {
+      _loadingItems.remove(productId);
+      notifyListeners();
+    }
   }
 
-  void clearCart() {
-    _items.clear();
+  Future<void> updateCartQuantity(String productId, int newQuantity) async {
+    if (newQuantity < 1) return;
+
+    _loadingItems.add(productId);
     notifyListeners();
+
+    try {
+      await _repository.updateCartQuantity(productId, newQuantity);
+
+      // Optimistic update
+      final index =
+          _cartItems.indexWhere((item) => item.product.id == productId);
+      if (index != -1) {
+        _cartItems[index].quantity = newQuantity;
+      }
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      await fetchCart(); // Đồng bộ lại nếu lỗi
+    } finally {
+      _loadingItems.remove(productId);
+      notifyListeners();
+    }
   }
 
-  void clearError() {
-    _errorMessage = null;
+  Future<void> removeFromCart(String productId) async {
+    _loadingItems.add(productId);
     notifyListeners();
+
+    try {
+      await _repository.removeFromCart(productId);
+      _cartItems.removeWhere((item) => item.product.id == productId);
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      await fetchCart();
+    } finally {
+      _loadingItems.remove(productId);
+      notifyListeners();
+    }
   }
 
-  // Checks if a product is in cart
-  bool hasProduct(String productId) =>
-      _items.any((e) => e.productId == productId);
-
-  int quantityOf(String productId) {
-    final idx = _items.indexWhere((e) => e.productId == productId);
-    return idx >= 0 ? _items[idx].quantity : 0;
+  String _parseError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('connectionTimeout') ||
+        msg.contains('connectionError') ||
+        msg.contains('SocketException')) {
+      return 'Không thể kết nối đến server.';
+    }
+    return 'Lỗi xử lý giỏ hàng. Vui lòng thử lại.';
   }
 }
