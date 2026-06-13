@@ -40,7 +40,6 @@ class ProductModel {
   // Classification
   final String department;
   final String categoryId;
-  final String ownerId;
 
   // Status & Logistics
   final String stockStatus;
@@ -51,8 +50,6 @@ class ProductModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  // Local state
-  bool isWishlisted;
 
   ProductModel({
     required this.id,
@@ -73,13 +70,11 @@ class ProductModel {
     this.sizeCategory = 'Medium',
     required this.department,
     required this.categoryId,
-    required this.ownerId,
     this.stockStatus = 'IN STOCK',
     this.condition = 'New',
     this.shippingOptions = const ShippingOptions(),
     this.createdAt,
     this.updatedAt,
-    this.isWishlisted = false,
   });
 
   String get thumbnailUrl => images.isNotEmpty ? images.first : '';
@@ -111,9 +106,6 @@ class ProductModel {
       categoryId: json['categoryId'] is Map
           ? json['categoryId']['_id'] as String
           : json['categoryId'] as String,
-      ownerId: json['ownerId'] is Map
-          ? json['ownerId']['_id'] as String
-          : json['ownerId'] as String,
       stockStatus: json['stockStatus'] as String? ?? 'IN STOCK',
       condition: json['condition'] as String? ?? 'New',
       shippingOptions: json['shippingOptions'] != null

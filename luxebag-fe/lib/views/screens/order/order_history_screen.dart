@@ -22,7 +22,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     (label: 'Pending', status: OrderStatus.pending),
     (label: 'Processing', status: OrderStatus.processing),
     (label: 'Shipped', status: OrderStatus.shipped),
-    (label: 'Delivered', status: OrderStatus.delivered),
+    (label: 'Completed', status: OrderStatus.completed),
     (label: 'Cancelled', status: OrderStatus.cancelled),
   ];
 
@@ -31,7 +31,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderViewModel>().loadOrders();
+      context.read<OrderViewModel>().fetchMyOrders();
     });
   }
 
@@ -90,7 +90,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
           if (vm.errorMessage != null) {
             return _ErrorView(
               message: vm.errorMessage!,
-              onRetry: () => vm.loadOrders(),
+              onRetry: () => vm.fetchMyOrders(),
             );
           }
           return TabBarView(
@@ -126,7 +126,7 @@ class _OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // TODO: navigate to order detail
+        context.push('/orders/${order.id}', extra: order);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -138,7 +138,7 @@ class _OrderCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  order.orderCode,
+                  order.id.substring(order.id.length - 8).toUpperCase(), // Use part of ID as code
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -176,7 +176,7 @@ class _OrderCard extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: CachedNetworkImage(
-                              imageUrl: item.thumbnailUrl,
+                              imageUrl: item.image ?? '',
                               width: 60,
                               height: 60,
                               fit: BoxFit.cover,
@@ -236,7 +236,7 @@ class _OrderCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${order.total.toStringAsFixed(2)}',
+                  '\$${order.totalAmount.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -301,7 +301,7 @@ class _StatusBadge extends StatelessWidget {
         return (const Color(0xFFCCE5FF), const Color(0xFF004085));
       case OrderStatus.shipped:
         return (const Color(0xFFD1ECF1), const Color(0xFF0C5460));
-      case OrderStatus.delivered:
+      case OrderStatus.completed:
         return (const Color(0xFFD4EDDA), AppColors.success);
       case OrderStatus.cancelled:
         return (const Color(0xFFF8D7DA), AppColors.error);

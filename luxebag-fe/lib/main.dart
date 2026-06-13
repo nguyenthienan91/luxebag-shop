@@ -9,7 +9,9 @@ import 'viewmodels/order_viewmodel.dart';
 import 'viewmodels/chat_viewmodel.dart';
 import 'viewmodels/notification_viewmodel.dart';
 
-void main() {
+void main() async {
+  // Bắt buộc gọi trước khi sử dụng SharedPreferences / bất kỳ plugin nào.
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const LuxeBagApp());
 }
 
@@ -27,12 +29,37 @@ class LuxeBagApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatViewModel()),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
       ],
-      child: MaterialApp.router(
-        title: 'LuxeBag',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        routerConfig: appRouter,
-      ),
+      child: const _AppBootstrap(),
+    );
+  }
+}
+
+/// Widget trung gian để gọi tryAutoLogin() một lần duy nhất
+/// sau khi Provider đã được khởi tạo xong.
+class _AppBootstrap extends StatefulWidget {
+  const _AppBootstrap();
+
+  @override
+  State<_AppBootstrap> createState() => _AppBootstrapState();
+}
+
+class _AppBootstrapState extends State<_AppBootstrap> {
+  @override
+  void initState() {
+    super.initState();
+    // Dùng addPostFrameCallback để đảm bảo context đã sẵn sàng
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthViewModel>().tryAutoLogin();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'LuxeBag',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      routerConfig: appRouter,
     );
   }
 }

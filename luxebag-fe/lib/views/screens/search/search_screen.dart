@@ -79,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: vm.loadInitial,
+                    onPressed: vm.fetchProducts,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -186,7 +186,9 @@ class _CategoryChips extends StatelessWidget {
             itemCount: vm.categories.length,
             itemBuilder: (context, index) {
               final cat = vm.categories[index];
-              final isSelected = vm.selectedCategoryId == cat.id;
+              final isSelected = cat.id == 'all'
+                  ? vm.selectedCategoryId == null
+                  : vm.selectedCategoryId == cat.id;
               return GestureDetector(
                 onTap: () => vm.selectCategory(cat.id),
                 child: Container(

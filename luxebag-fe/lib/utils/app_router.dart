@@ -6,13 +6,20 @@ import '../views/screens/main/main_screen.dart';
 import '../views/screens/product/product_detail_screen.dart';
 import '../views/screens/checkout/checkout_screen.dart';
 import '../views/screens/order/order_history_screen.dart';
+import '../views/screens/order/order_detail_screen.dart';
+import '../models/order_model.dart';
 import '../views/screens/chat/chat_screen.dart';
 import '../views/screens/notification/notifications_screen.dart';
 import '../views/screens/map/store_map_screen.dart';
+import '../views/screens/cart/cart_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/home',
   routes: [
+    GoRoute(
+      path: '/',
+      redirect: (_, __) => '/home',
+    ),
     GoRoute(
       path: '/login',
       name: 'login',
@@ -31,7 +38,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/home',
       name: 'home',
-      builder: (context, state) => const MainScreen(),
+      builder: (context, state) => MainScreen(key: mainScreenKey),
     ),
     GoRoute(
       path: '/product/:id',
@@ -50,6 +57,14 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const OrderHistoryScreen(),
     ),
     GoRoute(
+      path: '/orders/:id',
+      name: 'order-detail',
+      builder: (context, state) {
+        final order = state.extra as OrderModel;
+        return OrderDetailScreen(order: order);
+      },
+    ),
+    GoRoute(
       path: '/chat',
       name: 'chat',
       builder: (context, state) => const ChatScreen(),
@@ -63,6 +78,11 @@ final GoRouter appRouter = GoRouter(
       path: '/store-map',
       name: 'store-map',
       builder: (context, state) => const StoreMapScreen(),
+    ),
+    GoRoute(
+      path: '/cart',
+      name: 'cart',
+      builder: (context, state) => const CartScreen(),
     ),
   ],
 );

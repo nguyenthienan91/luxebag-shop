@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/auth_viewmodel.dart';
+import '../../../viewmodels/cart_viewmodel.dart';
+import '../../../viewmodels/product_viewmodel.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
@@ -31,13 +33,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authVM = context.read<AuthViewModel>();
-    final success = await authVM.login(
+    final success = await authVM.signIn(
       _emailController.text.trim(),
       _passwordController.text,
     );
 
     if (!mounted) return;
     if (success) {
+      context.read<CartViewModel>().fetchCart();
+      context.read<ProductViewModel>().fetchWishlist();
       context.go('/home');
     } else if (authVM.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(

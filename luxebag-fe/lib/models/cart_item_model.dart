@@ -1,38 +1,31 @@
+import 'product_model.dart';
+
 class CartItemModel {
-  final String productId;
-  final String title;
-  final String brand;
-  final String thumbnailUrl;
-  final double price;
-  final double? originalPrice;
+  final String id;
+  final ProductModel product;
   int quantity;
 
   CartItemModel({
-    required this.productId,
-    required this.title,
-    required this.brand,
-    required this.thumbnailUrl,
-    required this.price,
-    this.originalPrice,
+    required this.id,
+    required this.product,
     this.quantity = 1,
   });
 
-  double get subtotal => price * quantity;
-
-  CartItemModel copyWith({int? quantity}) {
+  factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    final productData = json['productId'] ?? json['product'];
     return CartItemModel(
-      productId: productId,
-      title: title,
-      brand: brand,
-      thumbnailUrl: thumbnailUrl,
-      price: price,
-      originalPrice: originalPrice,
-      quantity: quantity ?? this.quantity,
+      id: json['_id'] as String? ?? '',
+      product: ProductModel.fromJson(productData as Map<String, dynamic>),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'productId': productId,
-    'quantity': quantity,
-  };
+  // Getters tương thích với code UI hiện tại
+  String get productId => product.id;
+  String get title => product.title;
+  String get brand => product.brand;
+  String get thumbnailUrl => product.thumbnailUrl;
+  double get price => product.currentPrice;
+  double? get originalPrice => product.isOnSale ? product.retailPrice : null;
+  double get subtotal => price * quantity;
 }

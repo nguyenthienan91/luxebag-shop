@@ -19,7 +19,7 @@ async function bootstrap() {
 
   initApp(app)
 
-  await app.listen(PORT, HOST)
+  await app.listen(PORT, '0.0.0.0')
   const protocol = NODE_ENV === 'production' ? 'https' : 'http'
   Logger.log(`Service is running at ${protocol}://${HOST}:${PORT}${APP_PREFIX}`, APP_NAME)
 }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../models/product_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/product_viewmodel.dart';
+import '../main/main_screen.dart';
 
 class WishlistScreen extends StatelessWidget {
   const WishlistScreen({super.key});
@@ -92,7 +93,13 @@ class _EmptyWishlist extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => context.go('/home'),
+            onPressed: () {
+              if (context.canPop()) {
+                context.go('/home');
+              } else {
+                mainScreenKey.currentState?.switchTab(0);
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,

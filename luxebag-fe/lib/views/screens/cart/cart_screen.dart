@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../models/cart_item_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
+import '../main/main_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -103,7 +104,13 @@ class _EmptyCart extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => context.go('/home'),
+            onPressed: () {
+              if (context.canPop()) {
+                context.go('/home');
+              } else {
+                mainScreenKey.currentState?.switchTab(0);
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -441,8 +448,10 @@ class _CheckoutBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Nếu đang ở trong Bottom Nav (không thể pop), cần thêm padding dưới để không bị che bởi FAB
+    final double bottomPadding = context.canPop() ? 28 : 72;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPadding),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
