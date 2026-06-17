@@ -48,8 +48,12 @@ class _AppBootstrapState extends State<_AppBootstrap> {
   void initState() {
     super.initState();
     // Dùng addPostFrameCallback để đảm bảo context đã sẵn sàng
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthViewModel>().tryAutoLogin();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authVM = context.read<AuthViewModel>();
+      await authVM.tryAutoLogin();
+      if (authVM.isLoggedIn && authVM.currentUser?.role == 'admin') {
+        appRouter.go('/admin-home');
+      }
     });
   }
 
