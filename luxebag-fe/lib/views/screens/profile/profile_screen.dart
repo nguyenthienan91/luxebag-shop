@@ -450,6 +450,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 28),
 
               // ── Quick Links ───────────────────────────────────────────
+              if (user?.role == 'admin') ...[
+                _ActionTile(
+                  icon: Icons.bar_chart_rounded,
+                  label: 'Business Statistics',
+                  onTap: () => context.push('/admin/revenue-stats'),
+                ),
+                const Divider(height: 1, color: AppColors.divider),
+              ],
               _ActionTile(
                 icon: Icons.store_outlined,
                 label: 'Store Location',

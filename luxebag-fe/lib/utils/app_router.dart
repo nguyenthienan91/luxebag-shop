@@ -12,6 +12,7 @@ import '../views/screens/chat/chat_screen.dart';
 import '../views/screens/notification/notifications_screen.dart';
 import '../views/screens/map/store_map_screen.dart';
 import '../views/screens/cart/cart_screen.dart';
+import '../views/screens/profile/revenue_stats_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/home',
@@ -83,6 +84,11 @@ final GoRouter appRouter = GoRouter(
       path: '/cart',
       name: 'cart',
       builder: (context, state) => const CartScreen(),
+    ),
+    GoRoute(
+      path: '/admin/revenue-stats',
+      name: 'revenue-stats',
+      builder: (context, state) => const RevenueStatsScreen(),
     ),
   ],
 );

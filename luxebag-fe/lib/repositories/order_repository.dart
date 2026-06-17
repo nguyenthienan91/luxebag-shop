@@ -1,4 +1,5 @@
 import '../models/order_model.dart';
+import '../models/revenue_stats_model.dart';
 import '../services/api_service.dart';
 
 class OrderRepository {
@@ -31,4 +32,17 @@ class OrderRepository {
       },
     );
   }
+
+  Future<RevenueStatsModel> fetchRevenueStats({String period = '7d'}) async {
+    final response = await _apiService.dio.get<Map<String, dynamic>>(
+      '/orders/revenue-stats',
+      queryParameters: {'period': period},
+    );
+    final data = response.data?['data'];
+    if (data != null) {
+      return RevenueStatsModel.fromJson(data as Map<String, dynamic>);
+    }
+    return const RevenueStatsModel(totalRevenue: 0, period: '7d', data: []);
+  }
 }
+
