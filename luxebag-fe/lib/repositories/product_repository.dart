@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../services/api_service.dart';
@@ -102,5 +105,51 @@ class ProductRepository {
   /// Xóa sản phẩm khỏi wishlist
   Future<void> removeFromWishlist(String productId) async {
     await _apiService.dio.delete('/wishlist/$productId');
+  }
+
+  // ── Admin: CRUD Products ──────────────────────────────────────────────────
+
+  /// Tạo sản phẩm mới
+  Future<ProductModel> createProduct(Map<String, dynamic> data) async {
+    final response = await _apiService.dio.post<Map<String, dynamic>>(
+      '/products',
+      data: data,
+    );
+    final responseData = response.data!['data'];
+    return ProductModel.fromJson(responseData as Map<String, dynamic>);
+  }
+
+  /// Cập nhật sản phẩm
+  Future<ProductModel> updateProduct(String id, Map<String, dynamic> data) async {
+    final response = await _apiService.dio.patch<Map<String, dynamic>>(
+      '/products/$id',
+      data: data,
+    );
+    final responseData = response.data!['data'];
+    return ProductModel.fromJson(responseData as Map<String, dynamic>);
+  }
+
+  /// Xóa sản phẩm (Soft delete)
+  Future<void> deleteProduct(String id) async {
+    await _apiService.dio.delete('/products/$id');
+  }
+
+  /// Upload ảnh cho sản phẩm
+  Future<void> uploadProductImages(String productId, List<XFile> images) async {
+    final formData = FormData();
+    for (var image in images) {
+      formData.files.add(MapEntry(
+        'images',
+        await MultipartFile.fromFile(image.path, filename: image.name),
+      ));
+    }
+
+    await _apiService.dio.post(
+      '/products/$productId/upload-images',
+      data: formData,
+      options: Options(
+        contentType: 'multipart/form-data',
+      ),
+    );
   }
 }
