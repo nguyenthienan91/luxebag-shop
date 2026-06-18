@@ -554,6 +554,12 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
       return;
     }
 
+    final currentStock = widget.inventory?.stock ?? 0;
+    if (_selectedAction == 'DEDUCT' && val > currentStock) {
+      setState(() => _dialogError = 'Số lượng khấu trừ ($val) không được vượt quá tồn kho hiện tại ($currentStock)');
+      return;
+    }
+
     setState(() {
       _submitting = true;
       _dialogError = null;
