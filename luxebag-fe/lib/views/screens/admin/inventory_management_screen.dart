@@ -549,7 +549,7 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
       return;
     }
 
-    if (_selectedAction != 'MANUAL_SET' && val == 0) {
+    if (val == 0) {
       setState(() => _dialogError = 'Số lượng thay đổi phải lớn hơn 0');
       return;
     }
@@ -561,11 +561,7 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
 
     try {
       final invVM = context.read<InventoryViewModel>();
-      if (_selectedAction == 'MANUAL_SET') {
-        await invVM.setStock(widget.product.id, val);
-      } else {
-        await invVM.adjustStock(widget.product.id, _selectedAction, val);
-      }
+      await invVM.adjustStock(widget.product.id, _selectedAction, val);
       if (mounted) {
         Navigator.of(context).pop(true);
       }
@@ -644,13 +640,6 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
                                     style: TextStyle(fontSize: 13, overflow: TextOverflow.ellipsis),
                                   ),
                                 ),
-                                DropdownMenuItem(
-                                  value: 'MANUAL_SET',
-                                  child: Text(
-                                    'Đặt lại tồn kho (MANUAL SET)',
-                                    style: TextStyle(fontSize: 13, overflow: TextOverflow.ellipsis),
-                                  ),
-                                ),
                               ],
                               onChanged: (v) {
                                 if (v != null) {
@@ -659,16 +648,16 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              _selectedAction == 'MANUAL_SET' ? 'Số lượng tồn kho mới:' : 'Số lượng thay đổi:',
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                            const Text(
+                              'Số lượng thay đổi:',
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                             ),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _amountController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                hintText: _selectedAction == 'MANUAL_SET' ? 'Ví dụ: 15' : 'Ví dụ: 5',
+                                hintText: 'Ví dụ: 5',
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),
