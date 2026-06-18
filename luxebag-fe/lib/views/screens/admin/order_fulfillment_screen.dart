@@ -166,6 +166,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          tabAlignment: TabAlignment.start,
           labelColor: AppColors.textPrimary,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,
