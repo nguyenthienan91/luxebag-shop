@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/product_model.dart';
 import '../models/category_model.dart';
 import '../repositories/product_repository.dart';
@@ -242,6 +243,65 @@ class ProductViewModel extends ChangeNotifier {
         _favoritedProductIds.remove(productId);
         _wishlistProducts.removeWhere((p) => p.id == productId);
       }
+      notifyListeners();
+    }
+  }
+
+  // ── Admin Actions ─────────────────────────────────────────────────────────
+
+  Future<void> createProduct(Map<String, dynamic> data, List<XFile>? images) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final newProduct = await _repository.createProduct(data);
+      if (images != null && images.isNotEmpty) {
+        await _repository.uploadProductImages(newProduct.id, images);
+      }
+      await fetchProducts(silent: true);
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateProduct(String id, Map<String, dynamic> data, List<XFile>? newImages) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.updateProduct(id, data);
+      if (newImages != null && newImages.isNotEmpty) {
+        await _repository.uploadProductImages(id, newImages);
+      }
+      await fetchProducts(silent: true);
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteProduct(String id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteProduct(id);
+      await fetchProducts(silent: true);
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      rethrow;
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }

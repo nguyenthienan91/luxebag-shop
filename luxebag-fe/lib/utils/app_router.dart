@@ -3,15 +3,18 @@ import '../views/screens/auth/login_screen.dart';
 import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/forgot_password_screen.dart';
 import '../views/screens/main/main_screen.dart';
+import '../views/screens/admin/admin_main_screen.dart';
 import '../views/screens/product/product_detail_screen.dart';
 import '../views/screens/checkout/checkout_screen.dart';
 import '../views/screens/order/order_history_screen.dart';
 import '../views/screens/order/order_detail_screen.dart';
 import '../models/order_model.dart';
+import '../models/product_model.dart';
 import '../views/screens/chat/chat_screen.dart';
 import '../views/screens/notification/notifications_screen.dart';
 import '../views/screens/map/store_map_screen.dart';
 import '../views/screens/cart/cart_screen.dart';
+import '../views/screens/admin/product_form_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/home',
@@ -39,6 +42,11 @@ final GoRouter appRouter = GoRouter(
       path: '/home',
       name: 'home',
       builder: (context, state) => MainScreen(key: mainScreenKey),
+    ),
+    GoRoute(
+      path: '/admin-home',
+      name: 'admin-home',
+      builder: (context, state) => AdminMainScreen(key: adminMainScreenKey),
     ),
     GoRoute(
       path: '/product/:id',
@@ -83,6 +91,19 @@ final GoRouter appRouter = GoRouter(
       path: '/cart',
       name: 'cart',
       builder: (context, state) => const CartScreen(),
+    ),
+    GoRoute(
+      path: '/admin/product/new',
+      name: 'admin-product-new',
+      builder: (context, state) => const ProductFormScreen(),
+    ),
+    GoRoute(
+      path: '/admin/product/edit',
+      name: 'admin-product-edit',
+      builder: (context, state) {
+        final product = state.extra as ProductModel;
+        return ProductFormScreen(product: product);
+      },
     ),
   ],
 );

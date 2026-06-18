@@ -31,4 +31,47 @@ class OrderRepository {
       },
     );
   }
+
+  /// GET /orders/admin
+  /// [ADMIN] lấy toàn bộ đơn hàng của hệ thống có phân trang + lọc theo trạng thái
+  Future<({List<OrderModel> orders, int totalPages, int totalItems})> fetchAdminOrders({
+    int page = 1,
+    int limit = 10,
+    String? status,
+  }) async {
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      'itemPerPage': limit,
+    };
+    if (status != null && status.isNotEmpty) {
+      queryParams['status'] = status;
+    }
+
+    final response = await _apiService.dio.get<Map<String, dynamic>>(
+      '/orders/admin',
+      queryParameters: queryParams,
+    );
+    final data = response.data!['data'] as Map<String, dynamic>;
+    final list = (data['list'] as List<dynamic>?)
+            ?.map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    return (
+      orders: list,
+      totalPages: (data['totalPages'] as num?)?.toInt() ?? 1,
+      totalItems: (data['totalItems'] as num?)?.toInt() ?? list.length,
+    );
+  }
+
+  /// PATCH /orders/:orderId/status
+  /// [ADMIN] cập nhật trạng thái đơn hàng
+  Future<OrderModel> updateOrderStatus(String orderId, String status) async {
+    final response = await _apiService.dio.patch<Map<String, dynamic>>(
+      '/orders/$orderId/status',
+      data: {'status': status},
+    );
+    final data = response.data!['data'] as Map<String, dynamic>;
+    return OrderModel.fromJson(data);
+  }
 }
