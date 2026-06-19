@@ -5,6 +5,8 @@ import '../../../utils/app_colors.dart';
 import '../../../viewmodels/product_viewmodel.dart';
 import '../../../viewmodels/notification_viewmodel.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
+import '../../../viewmodels/chat_viewmodel.dart';
+import '../../../viewmodels/auth_viewmodel.dart';
 import '../../widgets/product/product_card.dart';
 import '../../widgets/product/product_skeleton.dart';
 
@@ -25,6 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductViewModel>().loadInitial();
+      
+      final authVM = context.read<AuthViewModel>();
+      if (authVM.isLoggedIn) {
+        context.read<NotificationViewModel>().loadNotifications();
+        context.read<ChatViewModel>().loadConversations();
+      }
     });
     _scrollController.addListener(_onScroll);
   }
@@ -78,13 +86,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.chat_bubble_outline_rounded,
-              size: 26,
-              color: AppColors.textPrimary,
+          Consumer<ChatViewModel>(
+            builder: (context, chatVM, _) => Badge(
+              isLabelVisible: chatVM.totalUnreadMessages > 0,
+              label: Text(
+                chatVM.totalUnreadMessages > 9 ? '9+' : '${chatVM.totalUnreadMessages}',
+                style: const TextStyle(fontSize: 9),
+              ),
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              offset: const Offset(-4, 4),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 26,
+                  color: AppColors.textPrimary,
+                ),
+                onPressed: () => context.push('/chat-list'),
+              ),
             ),
-            onPressed: () => context.push('/chat-list'),
           ),
           Consumer<NotificationViewModel>(
             builder: (context, notifVM, _) => Badge(
