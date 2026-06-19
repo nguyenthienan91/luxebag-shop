@@ -6,9 +6,18 @@ import { okResponse } from '../../../common/interceptors/format-response/format-
 import { z } from 'zod'
 import { createZodDto } from 'nestjs-zod'
 
+const inventoryActionSchema = z.enum(['IMPORT', 'DEDUCT'])
+
 class SetStockDto extends createZodDto(
   z.object({
     stock: z.number({ error: 'stock must be a number' }).int().min(0, 'stock cannot be negative'),
+  }),
+) {}
+
+class AdjustInventoryDto extends createZodDto(
+  z.object({
+    action: inventoryActionSchema,
+    quantity: z.number({ error: 'quantity must be a number' }).int().min(1, 'quantity must be greater than 0'),
   }),
 ) {}
 
@@ -27,6 +36,12 @@ export class InventoryController {
   @Patch(':productId/stock')
   async setStock(@Param('productId') productId: string, @Body() dto: SetStockDto) {
     return okResponse(await this.inventoryService.setStock(productId, dto.stock))
+  }
+
+  // PATCH /inventory/:productId — import hoặc trừ tồn kho
+  @Patch(':productId')
+  async adjustStock(@Param('productId') productId: string, @Body() dto: AdjustInventoryDto) {
+    return okResponse(await this.inventoryService.adjustStock(productId, dto.action, dto.quantity))
   }
 
   // POST /inventory/bulk-init — init inventory cho toàn bộ product chưa có record

@@ -40,9 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
     if (success) {
-      context.read<CartViewModel>().fetchCart();
-      context.read<ProductViewModel>().fetchWishlist();
-      context.go('/home');
+      if (authVM.currentUser?.role == 'admin') {
+        context.go('/admin-home');
+      } else {
+        context.read<CartViewModel>().fetchCart();
+        context.read<ProductViewModel>().fetchWishlist();
+        context.go('/home');
+      }
     } else if (authVM.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
