@@ -57,10 +57,18 @@ export class OrderService {
       .exec()
   }
 
-  async findById(id: string, userId: string): Promise<OrderDocument> {
-    const order = await this.orderModel.findOne({ _id: id, userId: new Types.ObjectId(userId) }).exec()
+  async findById(id: string, userId: string, isAdmin = false): Promise<OrderDocument> {
+    const filter = isAdmin
+      ? { _id: id }
+      : { _id: id, userId: new Types.ObjectId(userId) }
+    const order = await this.orderModel.findOne(filter).exec()
     if (!order) throw new NotFoundException(`Order ${id} not found`)
     return order
+  }
+
+  async findRawById(id: string): Promise<OrderDocument | null> {
+    if (!Types.ObjectId.isValid(id)) return null
+    return this.orderModel.findById(id).exec()
   }
 
   async checkout(userId: string, dto: CheckoutDto): Promise<OrderDocument> {

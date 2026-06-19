@@ -55,6 +55,23 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
+  Future<OrderModel?> fetchOrderById(String orderId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final order = await _repository.fetchOrderById(orderId);
+      return order;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   bool _isLoadingStats = false;
   bool get isLoadingStats => _isLoadingStats;
 

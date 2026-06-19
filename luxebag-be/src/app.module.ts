@@ -12,6 +12,7 @@ import { CategoriesModule } from './modules/categories/categories.module'
 import { CartModule } from './modules/cart/cart.module'
 import { OrderModule } from './modules/orders/order.module'
 import { InventoryModule } from './modules/inventory/inventory.module'
+import { ChatModule } from './modules/chat/chat.module'
 import { AuthGuard } from './modules/auth/auth.guard'
 import { RolesGuard } from '../common/security/roles/roles.guard'
 
@@ -34,6 +35,7 @@ import { RolesGuard } from '../common/security/roles/roles.guard'
     CartModule,
     OrderModule,
     InventoryModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: AuthGuard }, { provide: APP_GUARD, useClass: RolesGuard }],

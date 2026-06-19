@@ -18,5 +18,6 @@ import { PaginationUtilModule } from '../../../common/utils/pagination-util/pagi
   ],
   controllers: [OrderController],
   providers: [OrderService],
+  exports: [OrderService],
 })
 export class OrderModule {}

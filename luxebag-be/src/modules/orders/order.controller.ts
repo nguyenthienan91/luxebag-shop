@@ -57,7 +57,8 @@ export class OrderController {
   // GET /orders/:id
   @Get(':id')
   async findOne(@Param('id') id: string, @User() user: UserInfo) {
-    return okResponse(await this.orderService.findById(id, user.userID))
+    const isAdmin = user.role === UserRole.ADMIN
+    return okResponse(await this.orderService.findById(id, user.userID, isAdmin))
   }
 
   // POST /orders/checkout

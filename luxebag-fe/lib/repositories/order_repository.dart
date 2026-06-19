@@ -20,6 +20,15 @@ class OrderRepository {
     return [];
   }
 
+  Future<OrderModel> fetchOrderById(String orderId) async {
+    final response = await _apiService.dio.get<Map<String, dynamic>>('/orders/$orderId');
+    final data = response.data?['data'];
+    if (data != null) {
+      return OrderModel.fromJson(data as Map<String, dynamic>);
+    }
+    throw Exception('Order not found');
+  }
+
   Future<void> checkout({
     required String shippingAddress,
     required String paymentMethod,
