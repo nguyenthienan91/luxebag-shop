@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../models/order_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/order_viewmodel.dart';
+import '../../../viewmodels/auth_viewmodel.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -31,7 +32,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderViewModel>().fetchMyOrders();
+      if (context.read<AuthViewModel>().isLoggedIn) {
+        context.read<OrderViewModel>().fetchMyOrders();
+      }
     });
   }
 
@@ -43,19 +46,114 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthViewModel>().isLoggedIn;
+
+    if (!isLoggedIn) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: context.canPop()
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 20,
+                    color: AppColors.textPrimary,
+                  ),
+                  onPressed: () => context.pop(),
+                )
+              : null,
+          title: const Text(
+            'Order History',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          centerTitle: true,
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, color: AppColors.divider),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.receipt_long_outlined,
+                  size: 80,
+                  color: AppColors.textHint,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Bạn chưa đăng nhập',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Vui lòng đăng nhập để quản lý và theo dõi các đơn hàng của bạn.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 36),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Sign In / Sign Up',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 48), // Lift it up a bit from the bottom nav
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 20,
-            color: AppColors.textPrimary,
-          ),
-          onPressed: () => context.pop(),
-        ),
+        leading: context.canPop()
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 20,
+                  color: AppColors.textPrimary,
+                ),
+                onPressed: () => context.pop(),
+              )
+            : null,
         title: const Text(
           'Order History',
           style: TextStyle(
