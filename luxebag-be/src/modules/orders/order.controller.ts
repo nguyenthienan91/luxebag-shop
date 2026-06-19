@@ -39,6 +39,14 @@ export class OrderController {
     )
   }
 
+  // GET /orders/revenue-stats — [ADMIN] Revenue statistics with flexible period
+  @Get('revenue-stats')
+  @Roles(UserRole.ADMIN)
+  @ApiQuery({ name: 'period', required: false, type: String, enum: ['7d', '30d', '6m', '12m', 'year'], example: '7d' })
+  async getRevenueStats(@Query('period') period?: string) {
+    return okResponse(await this.orderService.getRevenueStats(period || '7d'))
+  }
+
   // GET /orders — lấy lịch sử đơn hàng của user
   @Get()
   @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
@@ -49,7 +57,8 @@ export class OrderController {
   // GET /orders/:id
   @Get(':id')
   async findOne(@Param('id') id: string, @User() user: UserInfo) {
-    return okResponse(await this.orderService.findById(id, user.userID))
+    const isAdmin = user.role === UserRole.ADMIN
+    return okResponse(await this.orderService.findById(id, user.userID, isAdmin))
   }
 
   // POST /orders/checkout

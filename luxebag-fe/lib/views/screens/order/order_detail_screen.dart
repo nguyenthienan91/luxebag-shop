@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/order_model.dart';
 import '../../../utils/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../../../viewmodels/auth_viewmodel.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   final OrderModel order;
@@ -238,6 +240,22 @@ class OrderDetailScreen extends StatelessWidget {
             isBold: true,
             valueColor: AppColors.primary,
           ),
+          if (context.read<AuthViewModel>().currentUser?.role != 'admin') ...[
+            const SizedBox(height: 32),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/chat?orderId=${order.id}'),
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: const Text('Trao đổi về đơn hàng này'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 40),
         ],
       ),

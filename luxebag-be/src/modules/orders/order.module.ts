@@ -7,6 +7,7 @@ import { CartModule } from '../cart/cart.module'
 import { InventoryModule } from '../inventory/inventory.module'
 import { ProductModule } from '../products/product.module'
 import { PaginationUtilModule } from '../../../common/utils/pagination-util/pagination-util.module'
+import { NotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   imports: [
@@ -15,8 +16,10 @@ import { PaginationUtilModule } from '../../../common/utils/pagination-util/pagi
     InventoryModule,
     ProductModule,
     PaginationUtilModule,
+    NotificationsModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],
+  exports: [OrderService],
 })
 export class OrderModule {}

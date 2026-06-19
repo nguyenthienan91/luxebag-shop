@@ -1,4 +1,5 @@
 import '../models/order_model.dart';
+import '../models/revenue_stats_model.dart';
 import '../services/api_service.dart';
 
 class OrderRepository {
@@ -19,6 +20,15 @@ class OrderRepository {
     return [];
   }
 
+  Future<OrderModel> fetchOrderById(String orderId) async {
+    final response = await _apiService.dio.get<Map<String, dynamic>>('/orders/$orderId');
+    final data = response.data?['data'];
+    if (data != null) {
+      return OrderModel.fromJson(data as Map<String, dynamic>);
+    }
+    throw Exception('Order not found');
+  }
+
   Future<void> checkout({
     required String shippingAddress,
     required String paymentMethod,
@@ -30,6 +40,18 @@ class OrderRepository {
         'paymentMethod': paymentMethod,
       },
     );
+  }
+
+  Future<RevenueStatsModel> fetchRevenueStats({String period = '7d'}) async {
+    final response = await _apiService.dio.get<Map<String, dynamic>>(
+      '/orders/revenue-stats',
+      queryParameters: {'period': period},
+    );
+    final data = response.data?['data'];
+    if (data != null) {
+      return RevenueStatsModel.fromJson(data as Map<String, dynamic>);
+    }
+    return const RevenueStatsModel(totalRevenue: 0, period: '7d', data: []);
   }
 
   /// GET /orders/admin
@@ -75,3 +97,4 @@ class OrderRepository {
     return OrderModel.fromJson(data);
   }
 }
+

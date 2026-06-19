@@ -27,7 +27,18 @@ class LuxeBagApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProductViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()),
         ChangeNotifierProvider(create: (_) => OrderViewModel()),
-        ChangeNotifierProvider(create: (_) => ChatViewModel()),
+        ChangeNotifierProxyProvider<AuthViewModel, ChatViewModel>(
+          create: (context) => ChatViewModel(
+            authViewModel: context.read<AuthViewModel>(),
+          ),
+          update: (context, authVM, chatVM) {
+            final vm = chatVM ?? ChatViewModel(authViewModel: authVM);
+            if (!authVM.isLoggedIn) {
+              vm.disconnect(notify: false);
+            }
+            return vm;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
         ChangeNotifierProvider(create: (_) => InventoryViewModel()),
       ],

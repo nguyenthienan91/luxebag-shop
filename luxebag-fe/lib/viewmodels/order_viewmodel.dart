@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/order_model.dart';
+import '../models/revenue_stats_model.dart';
 import '../repositories/order_repository.dart';
 import 'cart_viewmodel.dart';
 
@@ -11,6 +12,7 @@ class OrderViewModel extends ChangeNotifier {
 
   List<OrderModel> _myOrders = [];
   List<OrderModel> _adminOrders = [];
+  RevenueStatsModel? _revenueStats;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -21,7 +23,8 @@ class OrderViewModel extends ChangeNotifier {
   bool _isAdminLoadingMore = false;
 
   List<OrderModel> get myOrders => List.unmodifiable(_myOrders);
-  List<OrderModel> get adminOrders => _adminOrders;
+  List<OrderModel> get adminOrders => List.unmodifiable(_adminOrders);
+  RevenueStatsModel? get revenueStats => _revenueStats;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -48,6 +51,41 @@ class OrderViewModel extends ChangeNotifier {
       _errorMessage = _parseError(e);
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<OrderModel?> fetchOrderById(String orderId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final order = await _repository.fetchOrderById(orderId);
+      return order;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  bool _isLoadingStats = false;
+  bool get isLoadingStats => _isLoadingStats;
+
+  Future<void> fetchRevenueStats({String period = '7d'}) async {
+    _isLoadingStats = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _revenueStats = await _repository.fetchRevenueStats(period: period);
+    } catch (e) {
+      _errorMessage = _parseError(e);
+    } finally {
+      _isLoadingStats = false;
       notifyListeners();
     }
   }
