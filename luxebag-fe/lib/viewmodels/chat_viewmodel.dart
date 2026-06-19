@@ -51,6 +51,10 @@ class ChatViewModel extends ChangeNotifier {
   String? get targetUserId => _targetUserId;
   UserModel? get targetUser => _targetUser;
   List<Map<String, dynamic>> get conversations => _conversations;
+  int get totalUnreadMessages => _conversations.fold<int>(
+        0,
+        (sum, conv) => sum + (conv['unreadCount'] as int? ?? 0),
+      );
 
   void selectOrder(String? orderId) {
     _selectedOrderId = orderId;

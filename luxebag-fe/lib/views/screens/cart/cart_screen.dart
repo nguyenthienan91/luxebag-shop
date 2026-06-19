@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../models/cart_item_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
-import '../main/main_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -105,11 +104,7 @@ class _EmptyCart extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              if (context.canPop()) {
-                context.go('/home');
-              } else {
-                mainScreenKey.currentState?.switchTab(0);
-              }
+              context.goNamed('home', queryParameters: {'tab': '0'});
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

@@ -320,8 +320,13 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) {
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year &&
+        localA.month == localB.month &&
+        localA.day == localB.day;
+  }
 
   void _showAgentSelectionSheet(BuildContext context, ChatViewModel vm) {
     showModalBottomSheet(
@@ -524,8 +529,9 @@ class _MessageBubble extends StatelessWidget {
   }
 
   String _formatTime(DateTime dt) {
-    final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
+    final localDt = dt.toLocal();
+    final h = localDt.hour.toString().padLeft(2, '0');
+    final m = localDt.minute.toString().padLeft(2, '0');
     return '$h:$m';
   }
 }
@@ -561,9 +567,10 @@ class _DateHeader extends StatelessWidget {
   }
 
   String _label(DateTime dt) {
+    final localDt = dt.toLocal();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final d = DateTime(dt.year, dt.month, dt.day);
+    final d = DateTime(localDt.year, localDt.month, localDt.day);
     if (d == today) return 'Today';
     if (d == today.subtract(const Duration(days: 1))) return 'Yesterday';
     const months = [
@@ -580,7 +587,7 @@ class _DateHeader extends StatelessWidget {
       'Nov',
       'Dec',
     ];
-    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    return '${months[localDt.month - 1]} ${localDt.day}, ${localDt.year}';
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../viewmodels/order_viewmodel.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../views/screens/auth/login_screen.dart';
 import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/forgot_password_screen.dart';
@@ -46,7 +47,21 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/home',
       name: 'home',
-      builder: (context, state) => MainScreen(key: mainScreenKey),
+      builder: (context, state) {
+        final tabStr = state.uri.queryParameters['tab'];
+        int? initialTab = tabStr != null ? int.tryParse(tabStr) : null;
+        if (initialTab != null && (initialTab < 0 || initialTab > 4)) {
+          initialTab = 0;
+        }
+
+        if (initialTab == 3 && context.read<AuthViewModel>().isLoggedIn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<OrderViewModel>().fetchMyOrders();
+          });
+        }
+
+        return MainScreen(initialTab: initialTab);
+      },
     ),
     GoRoute(
       path: '/admin-home',
