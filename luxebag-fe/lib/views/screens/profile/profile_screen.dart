@@ -458,6 +458,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const Divider(height: 1, color: AppColors.divider),
               ],
+              if (user?.role != 'admin') ...[
+                _ActionTile(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Tin nhắn',
+                  onTap: () => context.push('/chat-list'),
+                ),
+                const Divider(height: 1, color: AppColors.divider),
+              ],
               _ActionTile(
                 icon: Icons.store_outlined,
                 label: 'Store Location',
@@ -467,7 +475,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _ActionTile(
                 icon: Icons.help_outline_rounded,
                 label: 'Help & Support',
-                onTap: () {},
+                onTap: () => context.push('/chat-list'),
               ),
               const Divider(height: 1, color: AppColors.divider),
 

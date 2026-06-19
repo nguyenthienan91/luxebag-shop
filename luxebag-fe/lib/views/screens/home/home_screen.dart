@@ -78,6 +78,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 26,
+              color: AppColors.textPrimary,
+            ),
+            onPressed: () => context.push('/chat-list'),
+          ),
           Consumer<NotificationViewModel>(
             builder: (context, notifVM, _) => Badge(
               isLabelVisible: notifVM.unreadCount > 0,

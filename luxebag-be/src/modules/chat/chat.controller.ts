@@ -32,7 +32,7 @@ export class ChatController {
   }
 
   @Get('conversations')
-  @Roles(UserRole.ADMIN)
+  @Roles()
   async getConversations(@User() user: UserInfo) {
     return okResponse(await this.chatService.getConversations(user.userID))
   }

@@ -14,6 +14,7 @@ import '../views/screens/order/order_detail_screen.dart';
 import '../models/order_model.dart';
 import '../models/product_model.dart';
 import '../views/screens/chat/chat_screen.dart';
+import '../views/screens/chat/customer_chat_list_screen.dart';
 import '../views/screens/notification/notifications_screen.dart';
 import '../views/screens/map/store_map_screen.dart';
 import '../views/screens/cart/cart_screen.dart';
@@ -78,6 +79,11 @@ final GoRouter appRouter = GoRouter(
         final orderId = state.pathParameters['id']!;
         return OrderDetailLoaderScreen(orderId: orderId);
       },
+    ),
+    GoRoute(
+      path: '/chat-list',
+      name: 'chat-list',
+      builder: (context, state) => const CustomerChatListScreen(),
     ),
     GoRoute(
       path: '/chat',
