@@ -11,6 +11,7 @@ import { CheckoutDto } from './dto/checkout.dto'
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { PaginationUtilService } from '../../../common/utils/pagination-util/pagination-util.service'
 import { RevenueStatsDto } from './dto/revenue-stats.dto'
+import { NotificationsService } from '../notifications/notifications.service'
 
 
 @Injectable()
@@ -22,6 +23,7 @@ export class OrderService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly paginationUtil: PaginationUtilService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // [ADMIN] GET /orders/admin — lấy tất cả đơn hàng, có phân trang + lọc
@@ -166,6 +168,21 @@ export class OrderService {
       await this.cartModel.findOneAndUpdate({ userId: userObjectId }, { items: [] }, { session }).exec()
 
       await session.commitTransaction()
+
+      // Trigger checkout notification
+      try {
+        await this.notificationsService.createNotification(
+          userId,
+          'Đặt đơn hàng thành công! 🛒',
+          `Đơn hàng #${order._id} của bạn đã được đặt thành công và đang chờ xử lý.`,
+          'order',
+          'Order',
+          order._id.toString(),
+        )
+      } catch (err) {
+        console.error('Failed to create checkout notification:', err)
+      }
+
       return order
     } catch (error) {
       await session.abortTransaction()
@@ -211,6 +228,40 @@ export class OrderService {
     // 3. Cập nhật status và lưu
     order.status = dto.status
     await order.save()
+
+    // Trigger status update notification
+    try {
+      let title = ''
+      let body = ''
+
+      if (dto.status === OrderStatus.SHIPPED) {
+        title = 'Đơn hàng đang giao 🚚'
+        body = `Đơn hàng #${order._id} của bạn đang trên đường giao.`
+      } else if (dto.status === OrderStatus.COMPLETED) {
+        title = 'Đơn hàng hoàn thành ✅'
+        body = `Đơn hàng #${order._id} đã được giao thành công. Cảm ơn bạn đã mua sắm!`
+      } else if (dto.status === OrderStatus.CANCELLED) {
+        title = 'Đơn hàng đã hủy ❌'
+        body = `Đơn hàng #${order._id} của bạn đã bị hủy.`
+      } else if (dto.status === OrderStatus.PROCESSING) {
+        title = 'Đơn hàng đang xử lý ⚙️'
+        body = `Đơn hàng #${order._id} của bạn đang được xử lý.`
+      }
+
+      if (title && body) {
+        await this.notificationsService.createNotification(
+          order.userId,
+          title,
+          body,
+          'order',
+          'Order',
+          order._id.toString(),
+        )
+      }
+    } catch (err) {
+      console.error('Failed to create status update notification:', err)
+    }
+
     return order
   }
 
