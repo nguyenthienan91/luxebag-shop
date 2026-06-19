@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
 import '../home/home_screen.dart';
@@ -8,29 +9,42 @@ import '../cart/cart_screen.dart';
 import '../order/order_history_screen.dart';
 import '../profile/profile_screen.dart';
 
-final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
-
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int? initialTab;
+  const MainScreen({super.key, this.initialTab});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialTab ?? 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CartViewModel>().fetchCart();
     });
   }
 
+  @override
+  void didUpdateWidget(MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newTab = widget.initialTab ?? 0;
+    final oldTab = oldWidget.initialTab ?? 0;
+    if (newTab != oldTab) {
+      setState(() {
+        _currentIndex = newTab;
+      });
+    }
+  }
+
   void switchTab(int index) {
+    if (index == _currentIndex) return;
     if (mounted) {
-      setState(() => _currentIndex = index);
+      context.goNamed('home', queryParameters: {'tab': '$index'});
     }
   }
 
@@ -140,7 +154,7 @@ class _MainScreenState extends State<MainScreen> {
                       label: 'Home',
                       index: 0,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: (i) => switchTab(i),
                     ),
                     _NavItem(
                       icon: Icons.favorite_border_rounded,
@@ -148,7 +162,7 @@ class _MainScreenState extends State<MainScreen> {
                       label: 'Wishlist',
                       index: 1,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: (i) => switchTab(i),
                     ),
                   ],
                 ),
@@ -166,7 +180,7 @@ class _MainScreenState extends State<MainScreen> {
                       label: 'Orders',
                       index: 3,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: (i) => switchTab(i),
                     ),
                     _NavItem(
                       icon: Icons.person_outline_rounded,
@@ -174,7 +188,7 @@ class _MainScreenState extends State<MainScreen> {
                       label: 'Profile',
                       index: 4,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: (i) => switchTab(i),
                     ),
                   ],
                 ),
