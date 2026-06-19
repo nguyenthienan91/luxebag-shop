@@ -321,10 +321,11 @@ class _OrderCard extends StatelessWidget {
 
     String dateStr = '';
     try {
+      final localCreated = order.createdAt.toLocal();
       dateStr =
-          '${order.createdAt.hour.toString().padLeft(2, '0')}:${order.createdAt.minute.toString().padLeft(2, '0')}  ${order.createdAt.day.toString().padLeft(2, '0')}/${order.createdAt.month.toString().padLeft(2, '0')}/${order.createdAt.year}';
+          '${localCreated.hour.toString().padLeft(2, '0')}:${localCreated.minute.toString().padLeft(2, '0')}  ${localCreated.day.toString().padLeft(2, '0')}/${localCreated.month.toString().padLeft(2, '0')}/${localCreated.year}';
     } catch (_) {
-      dateStr = order.createdAt.toString();
+      dateStr = order.createdAt.toLocal().toString();
     }
 
     return Card(

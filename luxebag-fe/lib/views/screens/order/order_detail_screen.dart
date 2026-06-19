@@ -263,16 +263,17 @@ class OrderDetailScreen extends StatelessWidget {
   }
 
   String _formatDate(DateTime dt) {
+    final localDt = dt.toLocal();
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     
-    final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
-    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
-    final minute = dt.minute.toString().padLeft(2, '0');
+    final hour = localDt.hour == 0 ? 12 : (localDt.hour > 12 ? localDt.hour - 12 : localDt.hour);
+    final amPm = localDt.hour >= 12 ? 'PM' : 'AM';
+    final minute = localDt.minute.toString().padLeft(2, '0');
     
-    return '${months[dt.month - 1]} ${dt.day}, ${dt.year} - $hour:$minute $amPm';
+    return '${months[localDt.month - 1]} ${localDt.day}, ${localDt.year} - $hour:$minute $amPm';
   }
 }
 

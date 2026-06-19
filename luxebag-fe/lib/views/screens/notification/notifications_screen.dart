@@ -235,7 +235,8 @@ class _NotificationTile extends StatelessWidget {
   }
 
   String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
+    final localDt = dt.toLocal();
+    final diff = DateTime.now().difference(localDt);
     if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
@@ -244,7 +245,7 @@ class _NotificationTile extends StatelessWidget {
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
-    return '${months[dt.month - 1]} ${dt.day}';
+    return '${months[localDt.month - 1]} ${localDt.day}';
   }
 }
 

@@ -736,9 +736,10 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
                               // format date slightly
                               String dateStr = '';
                               try {
-                                dateStr = '${log.createdAt.hour.toString().padLeft(2, '0')}:${log.createdAt.minute.toString().padLeft(2, '0')}  ${log.createdAt.day.toString().padLeft(2, '0')}/${log.createdAt.month.toString().padLeft(2, '0')}/${log.createdAt.year}';
+                                final localCreated = log.createdAt.toLocal();
+                                dateStr = '${localCreated.hour.toString().padLeft(2, '0')}:${localCreated.minute.toString().padLeft(2, '0')}  ${localCreated.day.toString().padLeft(2, '0')}/${localCreated.month.toString().padLeft(2, '0')}/${localCreated.year}';
                               } catch (_) {
-                                dateStr = log.createdAt.toString();
+                                dateStr = log.createdAt.toLocal().toString();
                               }
 
                               return Container(

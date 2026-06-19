@@ -252,6 +252,7 @@ class _OrderCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime dt) {
+    final localDt = dt.toLocal();
     const months = [
       'Jan',
       'Feb',
@@ -266,7 +267,7 @@ class _OrderCard extends StatelessWidget {
       'Nov',
       'Dec',
     ];
-    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    return '${months[localDt.month - 1]} ${localDt.day}, ${localDt.year}';
   }
 }
 
