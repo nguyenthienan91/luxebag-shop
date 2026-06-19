@@ -469,31 +469,50 @@ class _RevenueStatsScreenState extends State<RevenueStatsScreen> {
         maxY: maxY,
         barTouchData: BarTouchData(
           enabled: true,
+          handleBuiltInTouches: data.length > 12,
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => const Color(0xFF2C2C2C),
-            tooltipPadding: const EdgeInsets.all(8),
-            tooltipMargin: 8,
+            getTooltipColor: (group) => data.length <= 12
+                ? Colors.transparent
+                : const Color(0xFF2C2C2C),
+            tooltipPadding: data.length <= 12
+                ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
+                : const EdgeInsets.all(8),
+            tooltipMargin: data.length <= 12 ? 4 : 8,
+            fitInsideVertically: true,
+            fitInsideHorizontally: true,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final label = data[group.x.toInt()].label;
               final formattedLabel = _formatTooltipLabel(label);
-              return BarTooltipItem(
-                '$formattedLabel\n',
-                const TextStyle(
-                  color: Color(0xFFD4AF37),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: _formatCurrency(rod.toY),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
+              
+              if (data.length <= 12) {
+                return BarTooltipItem(
+                  '\$${_formatCompact(rod.toY)}',
+                  const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 9,
                   ),
-                ],
-              );
+                );
+              } else {
+                return BarTooltipItem(
+                  '$formattedLabel\n',
+                  const TextStyle(
+                    color: Color(0xFFD4AF37),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: _formatCurrency(rod.toY),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                );
+              }
             },
           ),
         ),
@@ -574,6 +593,7 @@ class _RevenueStatsScreenState extends State<RevenueStatsScreen> {
           data.length,
           (index) => BarChartGroupData(
             x: index,
+            showingTooltipIndicators: data.length <= 12 ? [0] : [],
             barRods: [
               BarChartRodData(
                 toY: data[index].revenue,
