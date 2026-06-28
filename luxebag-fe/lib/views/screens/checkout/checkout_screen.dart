@@ -113,8 +113,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  context.go('/orders');
+                  Navigator.pop(context); // pop success dialog
+                  context.goNamed('home', queryParameters: {'tab': '3'});
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -134,8 +134,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                context.go('/home');
+                Navigator.pop(context); // pop success dialog
+                context.goNamed('home', queryParameters: {'tab': '0'});
               },
               child: const Text(
                 'Continue Shopping',

@@ -1,10 +1,19 @@
 import 'package:flutter/foundation.dart';
 import '../models/notification_model.dart';
+import '../repositories/notification_repository.dart';
 
 class NotificationViewModel extends ChangeNotifier {
+  final NotificationRepository _repository;
+
+  NotificationViewModel({NotificationRepository? repository})
+      : _repository = repository ?? NotificationRepository();
+
   List<NotificationModel> _notifications = [];
   bool _isLoading = false;
   String? _errorMessage;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalItems = 0;
 
   List<NotificationModel> get notifications =>
       List.unmodifiable(_notifications);
@@ -12,16 +21,31 @@ class NotificationViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
-  Future<void> loadNotifications() async {
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
+  int get totalItems => _totalItems;
+
+  Future<void> loadNotifications({bool refresh = true}) async {
     if (_isLoading) return;
     _isLoading = true;
     _errorMessage = null;
+    if (refresh) {
+      _currentPage = 1;
+    }
     notifyListeners();
 
     try {
-      // TODO: replace with GET /notifications API call
-      await Future.delayed(const Duration(milliseconds: 700));
-      _notifications = _mockNotifications();
+      final result = await _repository.fetchNotifications(
+        page: _currentPage,
+        limit: 50,
+      );
+      if (refresh) {
+        _notifications = result.notifications;
+      } else {
+        _notifications.addAll(result.notifications);
+      }
+      _totalPages = result.totalPages;
+      _totalItems = result.totalItems;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -39,8 +63,7 @@ class NotificationViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: call PUT /notifications/:id/read
-      await Future.delayed(const Duration(milliseconds: 300));
+      await _repository.markAsRead(id);
     } catch (e) {
       // Revert on failure
       _notifications[idx] = _notifications[idx].copyWith(isRead: false);
@@ -49,69 +72,25 @@ class NotificationViewModel extends ChangeNotifier {
   }
 
   Future<void> markAllAsRead() async {
+    final oldNotifications = List<NotificationModel>.from(_notifications);
+
+    // Optimistic update
     _notifications = _notifications
         .map((n) => n.copyWith(isRead: true))
         .toList();
     notifyListeners();
-    // TODO: call PUT /notifications/read-all
+
+    try {
+      await _repository.markAllAsRead();
+    } catch (e) {
+      // Revert on failure
+      _notifications = oldNotifications;
+      notifyListeners();
+    }
   }
 
   void clearError() {
     _errorMessage = null;
     notifyListeners();
-  }
-
-  // ── Mock Data ──────────────────────────────────────────────────────────────
-  List<NotificationModel> _mockNotifications() {
-    final now = DateTime.now();
-    return [
-      NotificationModel(
-        id: 'n1',
-        title: 'Order Shipped! 🚚',
-        body:
-            'Your order LB-20260525-0042 has been shipped. Expected delivery in 2-3 days.',
-        type: NotificationType.order,
-        isRead: false,
-        createdAt: now.subtract(const Duration(hours: 1)),
-        referenceId: 'ord2',
-      ),
-      NotificationModel(
-        id: 'n2',
-        title: 'Flash Sale — Up to 40% Off!',
-        body:
-            'Limited time offer on selected designer bags. Shop now before they\'re gone!',
-        type: NotificationType.promotion,
-        isRead: false,
-        createdAt: now.subtract(const Duration(hours: 3)),
-      ),
-      NotificationModel(
-        id: 'n3',
-        title: 'Order Delivered ✅',
-        body:
-            'Your order LB-20260601-0001 has been delivered. Enjoy your new LuxeBag!',
-        type: NotificationType.order,
-        isRead: false,
-        createdAt: now.subtract(const Duration(days: 1)),
-        referenceId: 'ord1',
-      ),
-      NotificationModel(
-        id: 'n4',
-        title: 'Welcome to LuxeBag!',
-        body:
-            'Thank you for joining us. Discover our exclusive collection of luxury bags.',
-        type: NotificationType.system,
-        isRead: true,
-        createdAt: now.subtract(const Duration(days: 5)),
-      ),
-      NotificationModel(
-        id: 'n5',
-        title: 'New Arrivals — Dior Summer 2026',
-        body:
-            'The Dior Summer 2026 collection has just landed. Be the first to explore!',
-        type: NotificationType.promotion,
-        isRead: true,
-        createdAt: now.subtract(const Duration(days: 7)),
-      ),
-    ];
   }
 }

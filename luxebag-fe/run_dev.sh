@@ -3,7 +3,20 @@
 # Sử dụng: ./run_dev.sh
 # Hoặc với thiết bị cụ thể: ./run_dev.sh emulator-5554
 
-ADB="$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe"
+# Khởi tạo đường dẫn ADB mặc định
+ADB=""
+
+# Kiểm tra các biến môi trường và đường dẫn phổ biến
+if [ -n "$ANDROID_HOME" ] && [ -f "$ANDROID_HOME/platform-tools/adb.exe" ]; then
+  ADB="$ANDROID_HOME/platform-tools/adb.exe"
+elif [ -n "$ANDROID_SDK_ROOT" ] && [ -f "$ANDROID_SDK_ROOT/platform-tools/adb.exe" ]; then
+  ADB="$ANDROID_SDK_ROOT/platform-tools/adb.exe"
+elif [ -f "$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe" ]; then
+  ADB="$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe"
+elif command -v adb &> /dev/null; then
+  ADB="adb"
+fi
+
 DEVICE_ID="${1:-}"
 
 # ── 1. Kiểm tra adb ──────────────────────────────────────────────────────────

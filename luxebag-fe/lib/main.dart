@@ -8,6 +8,7 @@ import 'viewmodels/cart_viewmodel.dart';
 import 'viewmodels/order_viewmodel.dart';
 import 'viewmodels/chat_viewmodel.dart';
 import 'viewmodels/notification_viewmodel.dart';
+import 'viewmodels/inventory_viewmodel.dart';
 
 void main() async {
   // Bắt buộc gọi trước khi sử dụng SharedPreferences / bất kỳ plugin nào.
@@ -26,8 +27,20 @@ class LuxeBagApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProductViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()),
         ChangeNotifierProvider(create: (_) => OrderViewModel()),
-        ChangeNotifierProvider(create: (_) => ChatViewModel()),
+        ChangeNotifierProxyProvider<AuthViewModel, ChatViewModel>(
+          create: (context) => ChatViewModel(
+            authViewModel: context.read<AuthViewModel>(),
+          ),
+          update: (context, authVM, chatVM) {
+            final vm = chatVM ?? ChatViewModel(authViewModel: authVM);
+            if (!authVM.isLoggedIn) {
+              vm.disconnect(notify: false);
+            }
+            return vm;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
+        ChangeNotifierProvider(create: (_) => InventoryViewModel()),
       ],
       child: const _AppBootstrap(),
     );
@@ -48,8 +61,12 @@ class _AppBootstrapState extends State<_AppBootstrap> {
   void initState() {
     super.initState();
     // Dùng addPostFrameCallback để đảm bảo context đã sẵn sàng
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthViewModel>().tryAutoLogin();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authVM = context.read<AuthViewModel>();
+      await authVM.tryAutoLogin();
+      if (authVM.isLoggedIn && authVM.currentUser?.role == 'admin') {
+        appRouter.go('/admin-home');
+      }
     });
   }
 

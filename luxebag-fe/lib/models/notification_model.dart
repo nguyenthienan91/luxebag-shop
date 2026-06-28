@@ -7,6 +7,7 @@ class NotificationModel {
   final NotificationType type;
   final bool isRead;
   final DateTime createdAt;
+  final String? referenceType;
   final String? referenceId; // orderId, productId, etc.
 
   const NotificationModel({
@@ -16,6 +17,7 @@ class NotificationModel {
     required this.type,
     required this.isRead,
     required this.createdAt,
+    this.referenceType,
     this.referenceId,
   });
 
@@ -26,17 +28,21 @@ class NotificationModel {
     type: type,
     isRead: isRead ?? this.isRead,
     createdAt: createdAt,
+    referenceType: referenceType,
     referenceId: referenceId,
   );
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      body: json['body'] as String,
+      id: (json['_id'] ?? json['id'] ?? '') as String,
+      title: (json['title'] ?? '') as String,
+      body: (json['body'] ?? '') as String,
       type: _typeFromString(json['type'] as String? ?? 'system'),
       isRead: json['isRead'] as bool? ?? false,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
+          : DateTime.now(),
+      referenceType: json['referenceType'] as String?,
       referenceId: json['referenceId'] as String?,
     );
   }
