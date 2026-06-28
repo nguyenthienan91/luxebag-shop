@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/app_colors.dart';
 
@@ -13,24 +14,6 @@ class StoreMapScreen extends StatefulWidget {
 
 class _StoreMapScreenState extends State<StoreMapScreen> {
   static const LatLng _storeLocation = LatLng(10.8411276, 106.8099619);
-
-  static const CameraPosition _initialCamera = CameraPosition(
-    target: _storeLocation,
-    zoom: 16,
-  );
-
-  late GoogleMapController _mapController;
-
-  final Set<Marker> _markers = {
-    const Marker(
-      markerId: MarkerId('luxebag_store'),
-      position: _storeLocation,
-      infoWindow: InfoWindow(
-        title: 'LuxeBag Showroom',
-        snippet: 'Lô E2a-7, Đường D1, TP. Thủ Đức, TP.HCM',
-      ),
-    ),
-  };
 
   Future<void> _openInGoogleMaps() async {
     final uri = Uri.parse(
@@ -74,21 +57,45 @@ class _StoreMapScreenState extends State<StoreMapScreen> {
       ),
       body: Stack(
         children: [
-          // ── Google Map ──────────────────────────────────────────────
-          GoogleMap(
-            initialCameraPosition: _initialCamera,
-            markers: _markers,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: true,
-            onMapCreated: (controller) {
-              _mapController = controller;
-              // Show info window on load
-              Future.delayed(const Duration(milliseconds: 600), () {
-                _mapController.showMarkerInfoWindow(
-                  const MarkerId('luxebag_store'),
-                );
-              });
-            },
+          // ── OpenStreetMap (flutter_map) ─────────────────────────────
+          FlutterMap(
+            options: const MapOptions(
+              initialCenter: _storeLocation,
+              initialZoom: 16.0,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.luxebag',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _storeLocation,
+                    width: 60,
+                    height: 60,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.location_on,
+                        color: AppColors.primary,
+                        size: 36,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // ── Bottom Info Card ────────────────────────────────────────

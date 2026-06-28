@@ -5,7 +5,7 @@ import 'token_service.dart';
 ///   1. [AuthInterceptor] – tự động gắn Access Token vào mỗi request.
 ///   2. [RefreshInterceptor] – tự động làm mới token khi nhận lỗi 401.
 class ApiService {
-  static const String _baseUrl = 'http://localhost:8888/api';
+  static const String _baseUrl = 'http://10.0.2.2:8888/api';
   static const Duration _connectTimeout = Duration(seconds: 15);
   static const Duration _receiveTimeout = Duration(seconds: 30);
 
@@ -53,8 +53,12 @@ class _AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Bỏ qua các endpoint auth không cần token
-    final skipPaths = ['/auth/sign-in', '/auth/sign-up', '/auth/refresh-token'];
+    final skipPaths = [
+      '/auth/sign-in',
+      '/auth/sign-up',
+      '/auth/refresh-token',
+      '/auth/google-login',
+    ];
     final shouldSkip = skipPaths.any((p) => options.path.contains(p));
 
     if (!shouldSkip) {

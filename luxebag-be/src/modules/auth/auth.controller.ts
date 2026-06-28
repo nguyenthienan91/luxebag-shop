@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Res, UseGuards, Query } from '@nestjs/common'
 import { AuthService } from './auth.service'
-import { SignInDto, SignInResponseDto, SignUpDto } from './dto/sign.dto'
+import { SignInDto, SignInResponseDto, SignUpDto, GoogleLoginDto } from './dto/sign.dto'
 import { SkipAuth } from './auth.decorator'
 import type { Response } from 'express'
 import ms from 'ms'
@@ -28,6 +28,23 @@ export class AuthController {
   @ZodResponse({ type: SignInResponseDto })
   async signIn(@Body() signInDto: SignInDto, @Res({ passthrough: true }) res: Response) {
     const data = await this.authService.signIn(signInDto)
+
+    res.cookie(TokenKeys.ACCESS_TOKEN_KEY, data.accessToken, {
+      ...COOKIE_CONFIG_DEFAULT,
+      maxAge: ms(CookiesToken.ACCESS_TOKEN_EXPIRE_IN),
+    })
+    res.cookie(TokenKeys.REFRESH_TOKEN_KEY, data.refreshToken, {
+      ...COOKIE_CONFIG_DEFAULT,
+      maxAge: ms(CookiesToken.REFRESH_TOKEN_EXPIRE_IN),
+    })
+    return data
+  }
+
+  @Post('google-login')
+  @SkipAuth()
+  @ZodResponse({ type: SignInResponseDto })
+  async googleLogin(@Body() googleLoginDto: GoogleLoginDto, @Res({ passthrough: true }) res: Response) {
+    const data = await this.authService.googleLogin(googleLoginDto.idToken)
 
     res.cookie(TokenKeys.ACCESS_TOKEN_KEY, data.accessToken, {
       ...COOKIE_CONFIG_DEFAULT,
