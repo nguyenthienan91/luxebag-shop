@@ -19,4 +19,10 @@ class SignInResponseDto extends createZodDto(SignInResponseSchema) {}
 
 class SignUpDto extends createZodDto(SignUpSchema) {}
 
-export { SignInDto, SignInResponseDto, SignUpDto }
+const GoogleLoginSchema = z.object({
+  idToken: z.string(),
+})
+
+class GoogleLoginDto extends createZodDto(GoogleLoginSchema) {}
+
+export { SignInDto, SignInResponseDto, SignUpDto, GoogleLoginDto }

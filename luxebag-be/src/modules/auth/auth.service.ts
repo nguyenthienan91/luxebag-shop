@@ -14,6 +14,7 @@ import { MailService } from '../../../common/utils/mail-util/mail.service'
 import { SignInDto, SignUpDto } from './dto/sign.dto'
 import { ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto'
 import { WithUser } from '../../../common/decorators/user.decorator'
+import { OAuth2Client } from 'google-auth-library'
 
 @Injectable()
 export class AuthService {
@@ -155,5 +156,73 @@ export class AuthService {
     const passwordHashed = await this.stringUtilService.hash(newPassword)
     await this.usersService.updateById(user.userID, { password: passwordHashed })
     return { message: 'Password have changed successfully.' }
+  }
+
+  async verifyGoogleToken(idToken: string) {
+    try {
+      const client = new OAuth2Client(process.env.AUTH_GOOGLE_ID)
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: process.env.AUTH_GOOGLE_ID,
+      })
+      const payload = ticket.getPayload()
+      if (!payload) {
+        throw new UnauthorizedException('Invalid Google token payload')
+      }
+      return payload
+    } catch (error) {
+      throw new UnauthorizedException('Google authentication failed: ' + (error instanceof Error ? error.message : String(error)))
+    }
+  }
+
+  async googleLogin(idToken: string) {
+    const payload = await this.verifyGoogleToken(idToken)
+    const { email, name, picture } = payload
+
+    if (!email) {
+      throw new BadRequestException('Email not provided by Google')
+    }
+
+    let user = await this.usersService.getUser({ email })
+
+    if (!user) {
+      // Create user if not exists
+      const randomPassword = randomUUID()
+      const passwordHashed = await this.stringUtilService.hash(randomPassword)
+
+      user = await this.usersService.createUser({
+        email,
+        password: passwordHashed,
+        displayName: name || email.split('@')[0],
+        avatar: picture || null,
+        role: 'customer' as any, // Default to customer
+        isActive: true,
+        isVerified: true,
+      })
+    } else {
+      if (!user.isActive) {
+        throw new ForbiddenException('Account has been banned')
+      }
+
+      // Update avatar or display name if not set
+      let needsUpdate = false
+      const updateData: any = {}
+      if (!user.displayName && name) {
+        updateData.displayName = name
+        needsUpdate = true
+      }
+      if (!user.avatar && picture) {
+        updateData.avatar = picture
+        needsUpdate = true
+      }
+      if (needsUpdate) {
+        await this.usersService.update(user.id, updateData)
+      }
+    }
+
+    const userID = user.id
+    const userEmail = user.email
+    const role = user.role
+    return await this.createToken({ userID, userEmail, role })
   }
 }

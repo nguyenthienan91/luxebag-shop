@@ -59,6 +59,31 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    final authVM = context.read<AuthViewModel>();
+    final success = await authVM.signInWithGoogle();
+
+    if (!mounted) return;
+    if (success) {
+      if (authVM.currentUser?.role == 'admin') {
+        context.go('/admin-home');
+      } else {
+        context.read<CartViewModel>().fetchCart();
+        context.read<ProductViewModel>().fetchWishlist();
+        context.go('/home');
+      }
+    } else if (authVM.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authVM.errorMessage!),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authVM = context.watch<AuthViewModel>();
@@ -217,7 +242,60 @@ class _LoginScreenState extends State<LoginScreen> {
                         isLoading: authVM.isLoading,
                         onPressed: _handleLogin,
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          const Expanded(child: Divider(color: AppColors.divider)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary.withOpacity(0.8),
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          const Expanded(child: Divider(color: AppColors.divider)),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      OutlinedButton(
+                        onPressed: authVM.isLoading ? null : _handleGoogleLogin,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(
+                              'https://developers.google.com/static/identity/images/g-logo.png',
+                              height: 26,
+                              width: 26,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.account_circle_outlined, color: Colors.grey, size: 26),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Sign in with Google',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
                       // Register link
                       Center(

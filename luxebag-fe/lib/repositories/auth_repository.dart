@@ -46,6 +46,27 @@ class AuthRepository {
     return getProfile();
   }
 
+  // ── Google Sign In ──────────────────────────────────────────────────────────
+  
+  /// Đăng nhập bằng Google token và lưu token trả về từ backend.
+  Future<UserModel> googleSignIn(String idToken) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/google-login',
+      data: {'idToken': idToken},
+    );
+
+    final body = response.data!;
+    final accessToken = body['accessToken'] as String;
+    final refreshToken = body['refreshToken'] as String;
+
+    await _tokenService.saveTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+
+    return getProfile();
+  }
+
   // ── Sign Up ──────────────────────────────────────────────────────────────────
 
   /// Đăng ký tài khoản mới. Trả về `true` nếu thành công.

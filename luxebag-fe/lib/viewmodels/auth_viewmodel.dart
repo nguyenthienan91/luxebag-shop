@@ -5,6 +5,7 @@ import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
 import '../services/api_service.dart';
 import '../services/token_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// ViewModel quản lý trạng thái xác thực và thông tin người dùng.
 ///
@@ -84,6 +85,41 @@ class AuthViewModel extends ChangeNotifier {
         debugPrint('type: ${e.runtimeType}');
         debugPrint('toString: $e');
       }
+      _setError(_parseError(e));
+      return false;
+    }
+  }
+
+  // ── Google Sign In ──────────────────────────────────────────────────────────
+
+  /// Đăng nhập bằng Google Account.
+  /// Trả về [true] nếu thành công, [false] nếu người dùng huỷ hoặc có lỗi.
+  Future<bool> signInWithGoogle() async {
+    _setLoading(true);
+    try {
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '259814392558-301snnneauigit03p8lq533jsf07rlig.apps.googleusercontent.com',
+      );
+
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      if (googleUser == null) {
+        // Người dùng huỷ đăng nhập
+        _setLoading(false);
+        return false;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null) {
+        throw Exception('Không lấy được ID Token từ Google.');
+      }
+
+      _currentUser = await _repository.googleSignIn(idToken);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      debugPrint('=== GOOGLE SIGN IN ERROR ===');
+      debugPrint(e.toString());
       _setError(_parseError(e));
       return false;
     }
@@ -222,6 +258,8 @@ class AuthViewModel extends ChangeNotifier {
         case 400:
           return 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
         case 401:
+          final msg = e.response?.data?['message'];
+          if (msg is String && msg.isNotEmpty) return msg;
           return 'Email hoặc mật khẩu không đúng.';
         case 403:
           return 'Bạn không có quyền thực hiện hành động này.';
