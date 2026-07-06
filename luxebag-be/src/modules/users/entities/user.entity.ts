@@ -20,7 +20,7 @@ export class User {
   @Prop({ required: true })
   password!: string
 
-  @Prop({ trim: true })
+  @Prop({ trim: true, default: null })
   phoneNumber!: string
 
   @Prop({ trim: true })

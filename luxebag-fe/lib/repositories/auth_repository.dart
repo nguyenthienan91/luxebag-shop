@@ -104,8 +104,8 @@ class AuthRepository {
     required String phone,
   }) async {
     final response = await _dio.patch<Map<String, dynamic>>(
-      '/users/profile',
-      data: {'name': name, 'phone': phone},
+      '/users/me',
+      data: {'displayName': name, 'phoneNumber': phone},
     );
     return UserModel.fromJson(response.data!);
   }
