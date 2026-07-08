@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_router.dart';
@@ -13,6 +14,17 @@ import 'viewmodels/inventory_viewmodel.dart';
 void main() async {
   // Bắt buộc gọi trước khi sử dụng SharedPreferences / bất kỳ plugin nào.
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Cho phép app vẽ full màn hình (edge-to-edge), system nav bar trong suốt
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
+
   runApp(const LuxeBagApp());
 }
 

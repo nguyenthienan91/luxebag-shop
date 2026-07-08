@@ -241,7 +241,7 @@ class ChatViewModel extends ChangeNotifier {
     print('[ChatVM] Connecting socket. User=$currentUserId, Target=$shopId, Token=${token.substring(0, 10)}...');
 
     // Connect to Socket.IO backend with JWT Authentication handshake
-    _socket = IO.io('http://localhost:8888', IO.OptionBuilder()
+    _socket = IO.io('https://luxebag-backend.onrender.com', IO.OptionBuilder()
       .setTransports(['websocket'])
       .setAuth({'token': 'Bearer $token'})
       .disableAutoConnect()
