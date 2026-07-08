@@ -129,7 +129,10 @@ class MainScreenState extends State<MainScreen> {
         surfaceTintColor: Colors.transparent,
         padding: EdgeInsets.zero,
         child: Container(
-          height: 68,
+          // 68px cho nav items + padding bằng chiều cao system nav bar
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
           decoration: BoxDecoration(
             color: const Color(0xFF1A1A1A),
             borderRadius: BorderRadius.circular(24),
@@ -141,59 +144,62 @@ class MainScreenState extends State<MainScreen> {
               ),
             ],
           ),
-          child: Row(
-            children: [
-              // Left: Home + Wishlist
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _NavItem(
-                      icon: Icons.home_outlined,
-                      activeIcon: Icons.home_rounded,
-                      label: 'Home',
-                      index: 0,
-                      currentIndex: _currentIndex,
-                      onTap: (i) => switchTab(i),
-                    ),
-                    _NavItem(
-                      icon: Icons.favorite_border_rounded,
-                      activeIcon: Icons.favorite_rounded,
-                      label: 'Wishlist',
-                      index: 1,
-                      currentIndex: _currentIndex,
-                      onTap: (i) => switchTab(i),
-                    ),
-                  ],
+          child: SizedBox(
+            height: 68,
+            child: Row(
+              children: [
+                // Left: Home + Wishlist
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _NavItem(
+                        icon: Icons.home_outlined,
+                        activeIcon: Icons.home_rounded,
+                        label: 'Home',
+                        index: 0,
+                        currentIndex: _currentIndex,
+                        onTap: (i) => switchTab(i),
+                      ),
+                      _NavItem(
+                        icon: Icons.favorite_border_rounded,
+                        activeIcon: Icons.favorite_rounded,
+                        label: 'Wishlist',
+                        index: 1,
+                        currentIndex: _currentIndex,
+                        onTap: (i) => switchTab(i),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // Center gap for FAB
-              const SizedBox(width: 72),
-              // Right: Orders + Profile
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _NavItem(
-                      icon: Icons.receipt_long_outlined,
-                      activeIcon: Icons.receipt_long_rounded,
-                      label: 'Orders',
-                      index: 3,
-                      currentIndex: _currentIndex,
-                      onTap: (i) => switchTab(i),
-                    ),
-                    _NavItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Profile',
-                      index: 4,
-                      currentIndex: _currentIndex,
-                      onTap: (i) => switchTab(i),
-                    ),
-                  ],
+                // Center gap for FAB
+                const SizedBox(width: 72),
+                // Right: Orders + Profile
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _NavItem(
+                        icon: Icons.receipt_long_outlined,
+                        activeIcon: Icons.receipt_long_rounded,
+                        label: 'Orders',
+                        index: 3,
+                        currentIndex: _currentIndex,
+                        onTap: (i) => switchTab(i),
+                      ),
+                      _NavItem(
+                        icon: Icons.person_outline_rounded,
+                        activeIcon: Icons.person_rounded,
+                        label: 'Profile',
+                        index: 4,
+                        currentIndex: _currentIndex,
+                        onTap: (i) => switchTab(i),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
