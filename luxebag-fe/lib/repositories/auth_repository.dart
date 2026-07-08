@@ -117,18 +117,21 @@ class AuthRepository {
   Future<UserModel> uploadAvatar(File imageFile) async {
     final fileName = imageFile.path.split('/').last;
     final formData = FormData.fromMap({
-      'avatar': await MultipartFile.fromFile(
+      'image': await MultipartFile.fromFile(
         imageFile.path,
         filename: fileName,
       ),
     });
 
+    // Không set contentType thủ công – Dio tự thêm boundary vào multipart/form-data
     final response = await _dio.patch<Map<String, dynamic>>(
       '/users/profile/avatar',
       data: formData,
-      options: Options(contentType: 'multipart/form-data'),
     );
-    return UserModel.fromJson(response.data!);
+    // Backend trả { message: 'OKE', data: { ...user } } → phải lấy 'data' bên trong
+    final body = response.data!;
+    final userData = (body['data'] as Map<String, dynamic>?) ?? body;
+    return UserModel.fromJson(userData);
   }
 
   // ── Logout ────────────────────────────────────────────────────────────────────
