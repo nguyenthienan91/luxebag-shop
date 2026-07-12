@@ -10,8 +10,9 @@ export class VnpayService {
     const secretKey = process.env.VNP_HASH_SECRET || ''
     let vnpUrl = process.env.VNP_URL || ''
     const returnUrl = process.env.VNP_RETURN_URL || ''
-    const createDate = moment(new Date()).format('YYYYMMDDHHmmss')
-    const expireDate = moment(new Date()).add(15, 'minutes').format('YYYYMMDDHHmmss')
+    const date = new Date()
+    const createDate = moment(date).utcOffset(7).format('YYYYMMDDHHmmss')
+    const expireDate = moment(date).utcOffset(7).add(15, 'minutes').format('YYYYMMDDHHmmss')
     const exchangeRate = 26267.54
 
     let vnp_Params: any = {}
