@@ -11,6 +11,7 @@ export class VnpayService {
     let vnpUrl = process.env.VNP_URL || ''
     const returnUrl = process.env.VNP_RETURN_URL || ''
     const createDate = moment(new Date()).format('YYYYMMDDHHmmss')
+    const expireDate = moment(new Date()).add(15, 'minutes').format('YYYYMMDDHHmmss')
     const exchangeRate = 26267.54
 
     let vnp_Params: any = {}
@@ -29,6 +30,7 @@ export class VnpayService {
     vnp_Params['vnp_ReturnUrl'] = returnUrl
     vnp_Params['vnp_IpAddr'] = ipAddress
     vnp_Params['vnp_CreateDate'] = createDate
+    vnp_Params['vnp_ExpireDate'] = expireDate
 
     // Sắp xếp các tham số theo thứ tự alphabet (Bắt buộc)
     vnp_Params = this.sortObject(vnp_Params)

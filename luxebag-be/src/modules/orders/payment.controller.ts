@@ -29,6 +29,16 @@ export class PaymentController {
         }
         return res.redirect(`${feUrl}/payment-success?orderId=${query.vnp_TxnRef}`)
       } else {
+        const orderId = query.vnp_TxnRef
+        const order = await this.orderService.findRawById(orderId)
+        if (order && order.status === OrderStatus.PENDING) {
+          // VNPay returns failure code (user cancelled or payment failed)
+          // Use updateStatus to also trigger inventory restoration
+          await this.orderService.updateStatus(orderId, {
+            status: OrderStatus.CANCELLED,
+            paymentStatus: PaymentStatus.UNPAID,
+          })
+        }
         return res.redirect(`${feUrl}/payment-failed?orderId=${query.vnp_TxnRef}`)
       }
     } else {
@@ -48,6 +58,15 @@ export class PaymentController {
         // Cập nhật trạng thái thành PROCESSING và PAID (Atomic)
         if (order && order.status === OrderStatus.PENDING) {
           await this.orderService.updateOrderStatusAndPayment(orderId, OrderStatus.PROCESSING, PaymentStatus.PAID)
+        }
+      } else {
+        const order = await this.orderService.findRawById(orderId)
+        if (order && order.status === OrderStatus.PENDING) {
+          // Thanh toán thất bại hoặc user hủy, cập nhật CANCELLED để hoàn kho
+          await this.orderService.updateStatus(orderId, {
+            status: OrderStatus.CANCELLED,
+            paymentStatus: PaymentStatus.UNPAID,
+          })
         }
       }
       return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' })
