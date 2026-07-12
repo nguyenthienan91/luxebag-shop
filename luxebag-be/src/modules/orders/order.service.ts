@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { InjectConnection } from '@nestjs/mongoose'
 import type { Connection, Model } from 'mongoose'
 import { Types } from 'mongoose'
-import { Order, OrderDocument, OrderStatus, PaymentMethod } from './entities/order.entity'
+import { Order, OrderDocument, OrderStatus, PaymentMethod, PaymentStatus } from './entities/order.entity'
 import { Cart, CartDocument } from '../cart/entities/cart.entity'
 import { Inventory, InventoryDocument } from '../inventory/entities/inventory.entity'
 import { Product, ProductDocument } from '../products/entities/product.entity'
@@ -12,7 +12,6 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { PaginationUtilService } from '../../../common/utils/pagination-util/pagination-util.service'
 import { RevenueStatsDto } from './dto/revenue-stats.dto'
 import { NotificationsService } from '../notifications/notifications.service'
-
 
 @Injectable()
 export class OrderService {
@@ -42,7 +41,12 @@ export class OrderService {
     const totalItems = await this.orderModel.countDocuments(filter)
     const pagination = this.paginationUtil.paging({ page, itemPerPage, totalItems })
 
-    const list = await this.orderModel.find(filter).sort({ createdAt: -1 }).skip(pagination.skip).limit(itemPerPage).exec()
+    const list = await this.orderModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(pagination.skip)
+      .limit(itemPerPage)
+      .exec()
 
     return pagination.format(list)
   }
@@ -53,16 +57,11 @@ export class OrderService {
     if (status) {
       filter.status = status
     }
-    return this.orderModel
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .exec()
+    return this.orderModel.find(filter).sort({ createdAt: -1 }).exec()
   }
 
   async findById(id: string, userId: string, isAdmin = false): Promise<OrderDocument> {
-    const filter = isAdmin
-      ? { _id: id }
-      : { _id: id, userId: new Types.ObjectId(userId) }
+    const filter = isAdmin ? { _id: id } : { _id: id, userId: new Types.ObjectId(userId) }
     const order = await this.orderModel.findOne(filter).exec()
     if (!order) throw new NotFoundException(`Order ${id} not found`)
     return order
@@ -159,6 +158,8 @@ export class OrderService {
             totalAmount,
             shippingAddress: dto.shippingAddress,
             paymentMethod: dto.paymentMethod,
+            paymentStatus: PaymentStatus.UNPAID,
+            status: OrderStatus.PENDING,
           },
         ],
         { session },
@@ -204,7 +205,7 @@ export class OrderService {
     }
 
     // 2. Hoàn kho khi hủy đơn
-    if (dto.status === OrderStatus.CANCELLED) {
+    if (dto.status === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
       for (const item of order.items) {
         await this.inventoryModel
           .findOneAndUpdate(
@@ -226,7 +227,8 @@ export class OrderService {
     }
 
     // 3. Cập nhật status và lưu
-    order.status = dto.status
+    if (dto.status) order.status = dto.status
+    if (dto.paymentStatus) order.paymentStatus = dto.paymentStatus
     await order.save()
 
     // Trigger status update notification
@@ -269,9 +271,7 @@ export class OrderService {
   async getRevenueStats(period: string = '7d'): Promise<RevenueStatsDto> {
     const validPeriods = ['7d', '30d', '6m', '12m', 'year']
     if (!validPeriods.includes(period)) {
-      throw new BadRequestException(
-        `Invalid period "${period}". Must be one of: ${validPeriods.join(', ')}`,
-      )
+      throw new BadRequestException(`Invalid period "${period}". Must be one of: ${validPeriods.join(', ')}`)
     }
 
     const now = new Date()
@@ -331,9 +331,7 @@ export class OrderService {
       { $match: { status: OrderStatus.COMPLETED } },
       {
         $facet: {
-          totalRevenue: [
-            { $group: { _id: null, total: { $sum: '$totalAmount' } } },
-          ],
+          totalRevenue: [{ $group: { _id: null, total: { $sum: '$totalAmount' } } }],
           data: [
             { $match: { createdAt: { $gte: startDate } } },
             {
@@ -365,5 +363,9 @@ export class OrderService {
       data,
     }
   }
-}
 
+  // [SYSTEM] Cập nhật nguyên tử status và paymentStatus cho VNPay
+  async updateOrderStatusAndPayment(orderId: string, status: OrderStatus, paymentStatus: PaymentStatus) {
+    return this.orderModel.updateOne({ _id: new Types.ObjectId(orderId) }, { $set: { status, paymentStatus } }).exec()
+  }
+}

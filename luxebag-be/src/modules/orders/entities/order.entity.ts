@@ -11,7 +11,12 @@ export enum OrderStatus {
 
 export enum PaymentMethod {
   COD = 'COD',
-  CARD = 'CARD',
+  VNPAY = 'VNPAY',
+}
+
+export enum PaymentStatus {
+  UNPAID = 'unpaid',
+  PAID = 'paid',
 }
 
 export type OrderDocument = HydratedDocument<Order>
@@ -59,6 +64,9 @@ export class Order {
 
   @Prop({ type: String, enum: OrderStatus, default: OrderStatus.PENDING })
   status!: OrderStatus
+
+  @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.UNPAID })
+  paymentStatus!: PaymentStatus
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order)
