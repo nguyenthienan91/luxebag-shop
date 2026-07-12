@@ -28,9 +28,9 @@ export class MailService {
 
     try {
       await this.resend.emails.send({
-        from: 'EduShare <no-reply@thienantech.pro.vn>',
+        from: 'LuxeBag <no-reply@thienantech.pro.vn>',
         to: email,
-        subject: 'Khôi phục mật khẩu - EduShare',
+        subject: 'Khôi phục mật khẩu - LuxeBag',
         html: `
           <!DOCTYPE html>
           <html>
@@ -42,7 +42,7 @@ export class MailService {
                   <!-- Header -->
                   <tr>
                     <td style="background-color:#4f46e5;padding:24px 32px;text-align:center;">
-                      <h1 style="margin:0;color:#ffffff;font-size:22px;letter-spacing:0.5px;">EduShare</h1>
+                      <h1 style="margin:0;color:#ffffff;font-size:22px;letter-spacing:0.5px;">LuxeBag</h1>
                       <p style="margin:6px 0 0;color:#c7d2fe;font-size:13px;">Nền tảng chia sẻ tài liệu học tập</p>
                     </td>
                   </tr>
@@ -51,7 +51,7 @@ export class MailService {
                     <td style="padding:32px;color:#333333;line-height:1.7;">
                       <h2 style="margin-top:0;color:#1e1b4b;font-size:18px;">Yêu cầu khôi phục mật khẩu</h2>
                       <p style="margin:12px 0;font-size:15px;">Xin chào,</p>
-                      <p style="margin:12px 0;font-size:15px;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản EduShare của bạn. Nhấn vào nút bên dưới để tiến hành đổi mật khẩu:</p>
+                      <p style="margin:12px 0;font-size:15px;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản LuxeBag của bạn. Nhấn vào nút bên dưới để tiến hành đổi mật khẩu:</p>
                       <!-- Button -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
                         <tr>
@@ -77,7 +77,7 @@ export class MailService {
                   <!-- Footer -->
                   <tr>
                     <td style="background-color:#f9fafb;padding:20px 32px;text-align:center;font-size:12px;color:#9ca3af;border-top:1px solid #e5e7eb;">
-                      <p style="margin:0 0 4px;">&copy; ${new Date().getFullYear()} EduShare. Mọi quyền được bảo lưu.</p>
+                      <p style="margin:0 0 4px;">&copy; ${new Date().getFullYear()} LuxeBag. Mọi quyền được bảo lưu.</p>
                       <p style="margin:0;">Email này được gửi tự động, vui lòng không trả lời.</p>
                     </td>
                   </tr>
