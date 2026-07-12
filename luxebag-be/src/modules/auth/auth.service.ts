@@ -93,10 +93,8 @@ export class AuthService {
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    const { email, phoneNumber, redirectTo } = forgotPasswordDto
-    const user = await this.usersService.getUser({
-      $or: [{ email }, { phoneNumber }],
-    })
+    const { email } = forgotPasswordDto
+    const user = await this.usersService.getUser({ email })
 
     if (!user) throw new UnauthorizedException('Not found user')
 
@@ -114,14 +112,13 @@ export class AuthService {
 
       // 3. Gửi mail qua Resend
       try {
-        await this.mailService.sendResetPasswordEmail(user.email, token, redirectTo)
+        await this.mailService.sendResetPasswordEmail(user.email, token)
         return { message: 'Vui lòng kiểm tra email của bạn' }
       } catch (error) {
         throw new InternalServerErrorException('Lỗi khi gửi email')
       }
     } else {
-      this.sendSMS()
-      return { message: 'Vui lòng kiểm tra điện thoại của bạn' }
+      throw new UnauthorizedException('Tài khoản không có email')
     }
   }
 
