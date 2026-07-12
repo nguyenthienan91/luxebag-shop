@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Query, Ip } from '@nestjs/common'
 import { ApiQuery } from '@nestjs/swagger'
 import { OrderService } from './order.service'
 import { CheckoutDto } from './dto/checkout.dto'
@@ -8,10 +8,14 @@ import { User, type UserInfo } from '../../../common/decorators/user.decorator'
 import { Roles } from '../../../common/decorators/roles.decorator'
 import { UserRole } from '../users/entities/user.entity'
 import { okResponse } from '../../../common/interceptors/format-response/format-response.util'
+import { VnpayService } from '../vnpay/vnpay.service'
 
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly vnpayService: VnpayService,
+  ) {}
 
   // GET /orders/admin — [ADMIN] lấy toàn bộ đơn hàng, có phân trang + lọc
   @Get('admin')
@@ -63,8 +67,15 @@ export class OrderController {
 
   // POST /orders/checkout
   @Post('checkout')
-  async checkout(@Body() dto: CheckoutDto, @User() user: UserInfo) {
-    return okResponse(await this.orderService.checkout(user.userID, dto))
+  async checkout(@Body() dto: CheckoutDto, @User() user: UserInfo, @Ip() ip: string) {
+    const order = await this.orderService.checkout(user.userID, dto)
+
+    if (dto.paymentMethod === PaymentMethod.VNPAY) {
+      const paymentUrl = this.vnpayService.createPaymentUrl(order._id.toString(), order.totalAmount, ip || '127.0.0.1')
+      return okResponse({ ...order.toObject(), paymentUrl })
+    }
+
+    return okResponse(order)
   }
 
   // PATCH /orders/:orderId/status — [ADMIN] cập nhật trạng thái đơn hàng
