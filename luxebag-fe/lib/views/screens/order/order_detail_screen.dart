@@ -24,7 +24,13 @@ class OrderDetailScreen extends StatelessWidget {
             size: 20,
             color: AppColors.textPrimary,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home?tab=3');
+            }
+          },
         ),
         title: const Text(
           'Order Details',

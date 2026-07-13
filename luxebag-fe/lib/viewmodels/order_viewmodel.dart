@@ -62,6 +62,15 @@ class OrderViewModel extends ChangeNotifier {
 
     try {
       final order = await _repository.fetchOrderById(orderId);
+      
+      // Sync order in local list if it exists
+      final index = _myOrders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final list = List<OrderModel>.from(_myOrders);
+        list[index] = order;
+        _myOrders = list;
+      }
+
       return order;
     } catch (e) {
       _errorMessage = _parseError(e);
