@@ -70,9 +70,12 @@ class OrderModel {
   final double totalAmount;
   final OrderStatus status;
   final String paymentMethod;
+  final String? paymentStatus;
   final String shippingAddress;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? paymentUrl;
+  final DateTime? paymentUrlCreatedAt;
 
   const OrderModel({
     required this.id,
@@ -81,9 +84,12 @@ class OrderModel {
     required this.totalAmount,
     required this.status,
     required this.paymentMethod,
+    this.paymentStatus,
     required this.shippingAddress,
     required this.createdAt,
     required this.updatedAt,
+    this.paymentUrl,
+    this.paymentUrlCreatedAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -97,6 +103,7 @@ class OrderModel {
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
       status: OrderStatusExt.fromString(json['status'] as String? ?? 'pending'),
       paymentMethod: json['paymentMethod'] as String? ?? 'COD',
+      paymentStatus: json['paymentStatus'] as String?,
       shippingAddress: json['shippingAddress'] as String? ?? '',
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
@@ -104,6 +111,10 @@ class OrderModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'] as String) ?? DateTime.now()
           : DateTime.now(),
+      paymentUrl: json['paymentUrl'] as String?,
+      paymentUrlCreatedAt: json['paymentUrlCreatedAt'] != null
+          ? DateTime.tryParse(json['paymentUrlCreatedAt'] as String)
+          : null,
     );
   }
 }

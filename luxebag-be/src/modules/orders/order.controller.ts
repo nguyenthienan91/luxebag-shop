@@ -72,7 +72,9 @@ export class OrderController {
 
     if (dto.paymentMethod === PaymentMethod.VNPAY) {
       const paymentUrl = this.vnpayService.createPaymentUrl(order._id.toString(), order.totalAmount, ip || '127.0.0.1')
-      return okResponse({ ...order.toObject(), paymentUrl })
+      order.paymentUrl = paymentUrl
+      order.paymentUrlCreatedAt = new Date()
+      await order.save()
     }
 
     return okResponse(order)
@@ -83,5 +85,21 @@ export class OrderController {
   @Roles(UserRole.ADMIN)
   async updateStatus(@Param('orderId') orderId: string, @Body() dto: UpdateOrderStatusDto) {
     return okResponse(await this.orderService.updateStatus(orderId, dto))
+  }
+
+  // PATCH /orders/:id/cancel — [CUSTOMER] Khách hàng tự hủy đơn
+  @Patch(':id/cancel')
+  async cancelOrder(@Param('id') id: string, @User() user: UserInfo) {
+    return okResponse(await this.orderService.cancelOrder(id, user.userID))
+  }
+
+  // POST /orders/:id/recreate-payment-url — [CUSTOMER] Khởi tạo lại link thanh toán VNPay
+  @Post(':id/recreate-payment-url')
+  async recreatePaymentUrl(
+    @Param('id') id: string,
+    @User() user: UserInfo,
+    @Ip() ip: string,
+  ) {
+    return okResponse(await this.orderService.recreatePaymentUrl(id, user.userID, ip || '127.0.0.1'))
   }
 }

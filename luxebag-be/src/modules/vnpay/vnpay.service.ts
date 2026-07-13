@@ -12,7 +12,7 @@ export class VnpayService {
     const returnUrl = process.env.VNP_RETURN_URL || ''
     const date = new Date()
     const createDate = moment(date).utcOffset(7).format('YYYYMMDDHHmmss')
-    const expireDate = moment(date).utcOffset(7).add(15, 'minutes').format('YYYYMMDDHHmmss')
+    const txnRef = `${orderId}_${createDate}` // mã giao dịch duy nhất mỗi lần tạo link
     const exchangeRate = 26267.54
 
     let vnp_Params: any = {}
@@ -21,7 +21,7 @@ export class VnpayService {
     vnp_Params['vnp_TmnCode'] = tmnCode
     vnp_Params['vnp_Locale'] = 'vn'
     vnp_Params['vnp_CurrCode'] = 'VND'
-    vnp_Params['vnp_TxnRef'] = orderId // Mã đơn hàng trong hệ thống LuxeBag của bạn
+    vnp_Params['vnp_TxnRef'] = txnRef // Mã giao dịch duy nhất, KHÔNG dùng trực tiếp orderId
     vnp_Params['vnp_OrderInfo'] = `Thanh toan don hang #${orderId}`
     vnp_Params['vnp_OrderType'] = 'other'
 
@@ -31,7 +31,6 @@ export class VnpayService {
     vnp_Params['vnp_ReturnUrl'] = returnUrl
     vnp_Params['vnp_IpAddr'] = ipAddress
     vnp_Params['vnp_CreateDate'] = createDate
-    vnp_Params['vnp_ExpireDate'] = expireDate
 
     // Sắp xếp các tham số theo thứ tự alphabet (Bắt buộc)
     vnp_Params = this.sortObject(vnp_Params)
