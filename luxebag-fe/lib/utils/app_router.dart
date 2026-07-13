@@ -21,6 +21,8 @@ import '../views/screens/map/store_map_screen.dart';
 import '../views/screens/cart/cart_screen.dart';
 import '../views/screens/profile/revenue_stats_screen.dart';
 import '../views/screens/admin/product_form_screen.dart';
+import '../views/screens/checkout/payment_success_screen.dart';
+import '../views/screens/checkout/payment_failed_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/home',
@@ -107,6 +109,22 @@ final GoRouter appRouter = GoRouter(
         final orderId = state.uri.queryParameters['orderId'];
         final targetUserId = state.uri.queryParameters['userId'];
         return ChatScreen(orderId: orderId, targetUserId: targetUserId);
+      },
+    ),
+    GoRoute(
+      path: '/payment-success',
+      name: 'payment-success',
+      builder: (context, state) {
+        final orderId = state.uri.queryParameters['orderId'] ?? '';
+        return PaymentSuccessScreen(orderId: orderId);
+      },
+    ),
+    GoRoute(
+      path: '/payment-failed',
+      name: 'payment-failed',
+      builder: (context, state) {
+        final orderId = state.uri.queryParameters['orderId'] ?? '';
+        return PaymentFailedScreen(orderId: orderId);
       },
     ),
     GoRoute(

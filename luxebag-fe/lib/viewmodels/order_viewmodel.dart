@@ -90,18 +90,18 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> checkout(
+  Future<Map<String, dynamic>?> checkout(
     String address,
     String paymentMethod,
     CartViewModel cartViewModel,
   ) async {
-    if (_isLoading) return false;
+    if (_isLoading) return null;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _repository.checkout(
+      final result = await _repository.checkout(
         shippingAddress: address,
         paymentMethod: paymentMethod,
       );
@@ -112,10 +112,10 @@ class OrderViewModel extends ChangeNotifier {
       // Cập nhật lại lịch sử đơn hàng
       await fetchMyOrders();
 
-      return true;
+      return result;
     } catch (e) {
       _errorMessage = _parseError(e);
-      return false;
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();

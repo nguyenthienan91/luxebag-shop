@@ -29,17 +29,18 @@ class OrderRepository {
     throw Exception('Order not found');
   }
 
-  Future<void> checkout({
+  Future<Map<String, dynamic>?> checkout({
     required String shippingAddress,
     required String paymentMethod,
   }) async {
-    await _apiService.dio.post(
+    final response = await _apiService.dio.post<Map<String, dynamic>>(
       '/orders/checkout',
       data: {
         'shippingAddress': shippingAddress,
         'paymentMethod': paymentMethod,
       },
     );
+    return response.data?['data'] as Map<String, dynamic>?;
   }
 
   Future<RevenueStatsModel> fetchRevenueStats({String period = '7d'}) async {
