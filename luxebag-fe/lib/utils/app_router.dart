@@ -23,6 +23,7 @@ import '../views/screens/profile/revenue_stats_screen.dart';
 import '../views/screens/admin/product_form_screen.dart';
 import '../views/screens/checkout/payment_success_screen.dart';
 import '../views/screens/checkout/payment_failed_screen.dart';
+import '../views/screens/staff/staff_main_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/home',
@@ -69,6 +70,11 @@ final GoRouter appRouter = GoRouter(
       path: '/admin-home',
       name: 'admin-home',
       builder: (context, state) => AdminMainScreen(key: adminMainScreenKey),
+    ),
+    GoRoute(
+      path: '/staff-home',
+      name: 'staff-home',
+      builder: (context, state) => StaffMainScreen(key: staffMainScreenKey),
     ),
     GoRoute(
       path: '/product/:id',
