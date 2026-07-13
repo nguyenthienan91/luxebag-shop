@@ -3,8 +3,7 @@ import { HydratedDocument } from 'mongoose'
 
 export enum UserRole {
   CUSTOMER = 'customer', // Khách hàng mua sắm
-  SELLER = 'seller', // Người bán hàng (có thể là cá nhân hoặc doanh nghiệp)
-  DELIVERY = 'delivery', // Nhân viên giao hàng
+  DELIVERY = 'staff', // Nhân viên cửa hàng
   ADMIN = 'admin', // Quản trị viên hệ thống
 }
 
