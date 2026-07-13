@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
 import '../../../viewmodels/order_viewmodel.dart';
+import 'vnpay_webview_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -41,12 +42,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cartVM = context.read<CartViewModel>();
     final orderVM = context.read<OrderViewModel>();
 
-    // Mapping từ Radio value sang giá trị Backend Enum (nếu cần)
-    String backendPaymentMethod = _paymentMethod == 'card'
-        ? 'CARD'
+    // Mapping từ Radio value sang giá trị Backend Enum (nếu là CARD hoặc BANK thì chuyển thành VNPAY)
+    String backendPaymentMethod = (_paymentMethod == 'card' || _paymentMethod == 'bank')
+        ? 'VNPAY'
         : 'COD';
 
-    final success = await orderVM.checkout(
+    final result = await orderVM.checkout(
       _addressController.text.trim(),
       backendPaymentMethod,
       cartVM,
@@ -55,8 +56,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
     setState(() => _isPlacingOrder = false);
 
-    if (success) {
-      _showSuccessDialog();
+    if (result != null) {
+      final paymentUrl = result['paymentUrl'] as String?;
+      final orderId = (result['_id'] ?? result['id'] ?? '') as String;
+      
+      if (paymentUrl != null && paymentUrl.isNotEmpty) {
+        // Mở WebView thanh toán VNPay
+        final webViewResult = await Navigator.push<Map<String, String?>?>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VNPayWebViewScreen(paymentUrl: paymentUrl),
+          ),
+        );
+
+        if (!mounted) return;
+
+        if (webViewResult != null) {
+          final responseCode = webViewResult['vnp_ResponseCode'];
+          final txnRef = webViewResult['vnp_TxnRef'] ?? orderId;
+
+          if (responseCode == '00') {
+            // Thanh toán thành công -> Điều hướng qua màn hình PaymentSuccess
+            context.go('/payment-success?orderId=$txnRef');
+          } else {
+            // Thanh toán thất bại -> Điều hướng qua màn hình PaymentFailed
+            context.go('/payment-failed?orderId=$txnRef');
+          }
+        } else {
+          // Người dùng chủ động đóng WebView mà không hoàn tất thanh toán thành công
+          context.go('/payment-failed?orderId=$orderId');
+        }
+      } else {
+        // Đối với COD, hiển thị dialog thành công như bình thường
+        _showSuccessDialog();
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -4,14 +4,14 @@ import '../../../models/order_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/order_viewmodel.dart';
 
-class OrderFulfillmentScreen extends StatefulWidget {
-  const OrderFulfillmentScreen({super.key});
+class StaffOrderFulfillmentScreen extends StatefulWidget {
+  const StaffOrderFulfillmentScreen({super.key});
 
   @override
-  State<OrderFulfillmentScreen> createState() => _OrderFulfillmentScreenState();
+  State<StaffOrderFulfillmentScreen> createState() => _StaffOrderFulfillmentScreenState();
 }
 
-class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen>
+class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _scrollController = ScrollController();
@@ -154,7 +154,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen>
         shadowColor: AppColors.divider,
         surfaceTintColor: Colors.white,
         title: const Text(
-          'LUXEBAG ADMIN',
+          'LUXEBAG STAFF',
           style: TextStyle(
             fontWeight: FontWeight.w800,
             letterSpacing: 4,
@@ -271,8 +271,6 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen>
     );
   }
 }
-
-// ── Order Card Widget ────────────────────────────────────────────────────────
 
 class _OrderCard extends StatelessWidget {
   final OrderModel order;

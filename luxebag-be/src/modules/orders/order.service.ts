@@ -12,6 +12,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto'
 import { PaginationUtilService } from '../../../common/utils/pagination-util/pagination-util.service'
 import { RevenueStatsDto } from './dto/revenue-stats.dto'
 import { NotificationsService } from '../notifications/notifications.service'
+import { VnpayService } from '../vnpay/vnpay.service'
 
 @Injectable()
 export class OrderService {
@@ -23,6 +24,7 @@ export class OrderService {
     @InjectConnection() private readonly connection: Connection,
     private readonly paginationUtil: PaginationUtilService,
     private readonly notificationsService: NotificationsService,
+    private readonly vnpayService: VnpayService,
   ) {}
 
   // [ADMIN] GET /orders/admin — lấy tất cả đơn hàng, có phân trang + lọc
@@ -267,6 +269,80 @@ export class OrderService {
     return order
   }
 
+  // [CUSTOMER] Khách hàng tự hủy đơn
+  async cancelOrder(orderId: string, userId: string): Promise<OrderDocument> {
+    const order = await this.orderModel.findOne({ _id: orderId, userId: new Types.ObjectId(userId) }).exec()
+    if (!order) throw new NotFoundException(`Order ${orderId} not found`)
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(`Cannot cancel order in state "${order.status}"`)
+    }
+
+    // Hoàn kho khi hủy đơn
+    for (const item of order.items) {
+      await this.inventoryModel
+        .findOneAndUpdate(
+          { productId: item.productId },
+          {
+            $inc: { stock: item.quantity },
+            $push: {
+              logs: {
+                change: item.quantity,
+                reason: 'CANCEL_ORDER_RESTORE',
+                note: `Hoàn kho do khách hàng hủy đơn hàng #${orderId}`,
+                createdAt: new Date(),
+              },
+            },
+          },
+        )
+        .exec()
+    }
+
+    order.status = OrderStatus.CANCELLED
+    await order.save()
+
+    // Gửi thông báo hủy đơn
+    try {
+      await this.notificationsService.createNotification(
+        order.userId,
+        'Đơn hàng đã hủy ❌',
+        `Đơn hàng #${order._id} của bạn đã được hủy thành công.`,
+        'order',
+        'Order',
+        order._id.toString(),
+      )
+    } catch (err) {
+      console.error('Failed to create cancellation notification:', err)
+    }
+
+    return order
+  }
+
+  // [CUSTOMER] Khởi tạo lại link thanh toán VNPay
+  async recreatePaymentUrl(orderId: string, userId: string, ip: string): Promise<OrderDocument> {
+    const order = await this.orderModel.findOne({ _id: orderId, userId: new Types.ObjectId(userId) }).exec()
+    if (!order) throw new NotFoundException(`Order ${orderId} not found`)
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(`Cannot recreate payment URL for order in state "${order.status}"`)
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      throw new BadRequestException('Order is already paid')
+    }
+
+    if (order.paymentMethod !== PaymentMethod.VNPAY) {
+      throw new BadRequestException('Order payment method is not VNPAY')
+    }
+
+    const paymentUrl = this.vnpayService.createPaymentUrl(orderId, order.totalAmount, ip)
+    order.paymentUrl = paymentUrl
+    order.paymentUrlCreatedAt = new Date()
+    await order.save()
+
+    return order
+  }
+
   // [ADMIN] GET /orders/revenue-stats — Revenue statistics with flexible period
   async getRevenueStats(period: string = '7d'): Promise<RevenueStatsDto> {
     const validPeriods = ['7d', '30d', '6m', '12m', 'year']
@@ -367,5 +443,12 @@ export class OrderService {
   // [SYSTEM] Cập nhật nguyên tử status và paymentStatus cho VNPay
   async updateOrderStatusAndPayment(orderId: string, status: OrderStatus, paymentStatus: PaymentStatus) {
     return this.orderModel.updateOne({ _id: new Types.ObjectId(orderId) }, { $set: { status, paymentStatus } }).exec()
+  }
+
+  // [SYSTEM] Xóa link thanh toán khi giao dịch thất bại / bị hủy
+  async clearPaymentUrl(orderId: string) {
+    return this.orderModel
+      .updateOne({ _id: new Types.ObjectId(orderId) }, { $set: { paymentUrl: null, paymentUrlCreatedAt: null } })
+      .exec()
   }
 }

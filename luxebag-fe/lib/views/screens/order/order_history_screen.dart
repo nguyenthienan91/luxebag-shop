@@ -195,15 +195,26 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
             controller: _tabController,
             children: _tabs.map((t) {
               final orders = vm.getByStatus(t.status);
-              if (orders.isEmpty) {
-                return _EmptyOrders(status: t.label);
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                itemCount: orders.length,
-                separatorBuilder: (_, __) =>
-                    const Divider(height: 1, color: AppColors.divider),
-                itemBuilder: (context, i) => _OrderCard(order: orders[i]),
+              return RefreshIndicator(
+                onRefresh: () => vm.fetchMyOrders(),
+                color: AppColors.primary,
+                backgroundColor: Colors.white,
+                child: orders.isEmpty
+                    ? SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          alignment: Alignment.center,
+                          child: _EmptyOrders(status: t.label),
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        itemCount: orders.length,
+                        separatorBuilder: (_, __) =>
+                            const Divider(height: 1, color: AppColors.divider),
+                        itemBuilder: (context, i) => _OrderCard(order: orders[i]),
+                      ),
               );
             }).toList(),
           );

@@ -42,6 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       if (authVM.currentUser?.role == 'admin') {
         context.go('/admin-home');
+      } else if (authVM.currentUser?.role == 'staff') {
+        context.go('/staff-home');
       } else {
         context.read<CartViewModel>().fetchCart();
         context.read<ProductViewModel>().fetchWishlist();
@@ -67,6 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       if (authVM.currentUser?.role == 'admin') {
         context.go('/admin-home');
+      } else if (authVM.currentUser?.role == 'staff') {
+        context.go('/staff-home');
       } else {
         context.read<CartViewModel>().fetchCart();
         context.read<ProductViewModel>().fetchWishlist();

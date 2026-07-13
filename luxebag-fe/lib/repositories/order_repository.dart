@@ -29,17 +29,18 @@ class OrderRepository {
     throw Exception('Order not found');
   }
 
-  Future<void> checkout({
+  Future<Map<String, dynamic>?> checkout({
     required String shippingAddress,
     required String paymentMethod,
   }) async {
-    await _apiService.dio.post(
+    final response = await _apiService.dio.post<Map<String, dynamic>>(
       '/orders/checkout',
       data: {
         'shippingAddress': shippingAddress,
         'paymentMethod': paymentMethod,
       },
     );
+    return response.data?['data'] as Map<String, dynamic>?;
   }
 
   Future<RevenueStatsModel> fetchRevenueStats({String period = '7d'}) async {
@@ -92,6 +93,26 @@ class OrderRepository {
     final response = await _apiService.dio.patch<Map<String, dynamic>>(
       '/orders/$orderId/status',
       data: {'status': status},
+    );
+    final data = response.data!['data'] as Map<String, dynamic>;
+    return OrderModel.fromJson(data);
+  }
+
+  /// PATCH /orders/:orderId/cancel
+  /// [CUSTOMER] khách hàng tự hủy đơn hàng đang pending
+  Future<OrderModel> cancelOrder(String orderId) async {
+    final response = await _apiService.dio.patch<Map<String, dynamic>>(
+      '/orders/$orderId/cancel',
+    );
+    final data = response.data!['data'] as Map<String, dynamic>;
+    return OrderModel.fromJson(data);
+  }
+
+  /// POST /orders/:orderId/recreate-payment-url
+  /// [CUSTOMER] khởi tạo lại link thanh toán VNPay
+  Future<OrderModel> recreatePaymentUrl(String orderId) async {
+    final response = await _apiService.dio.post<Map<String, dynamic>>(
+      '/orders/$orderId/recreate-payment-url',
     );
     final data = response.data!['data'] as Map<String, dynamic>;
     return OrderModel.fromJson(data);

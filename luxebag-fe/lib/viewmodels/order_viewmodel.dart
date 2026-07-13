@@ -62,6 +62,15 @@ class OrderViewModel extends ChangeNotifier {
 
     try {
       final order = await _repository.fetchOrderById(orderId);
+      
+      // Sync order in local list if it exists
+      final index = _myOrders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final list = List<OrderModel>.from(_myOrders);
+        list[index] = order;
+        _myOrders = list;
+      }
+
       return order;
     } catch (e) {
       _errorMessage = _parseError(e);
@@ -90,18 +99,18 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> checkout(
+  Future<Map<String, dynamic>?> checkout(
     String address,
     String paymentMethod,
     CartViewModel cartViewModel,
   ) async {
-    if (_isLoading) return false;
+    if (_isLoading) return null;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _repository.checkout(
+      final result = await _repository.checkout(
         shippingAddress: address,
         paymentMethod: paymentMethod,
       );
@@ -112,10 +121,10 @@ class OrderViewModel extends ChangeNotifier {
       // Cập nhật lại lịch sử đơn hàng
       await fetchMyOrders();
 
-      return true;
+      return result;
     } catch (e) {
       _errorMessage = _parseError(e);
-      return false;
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -167,6 +176,56 @@ class OrderViewModel extends ChangeNotifier {
       } else {
         _isLoading = false;
       }
+      notifyListeners();
+    }
+  }
+
+  Future<bool> cancelMyOrder(String orderId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedOrder = await _repository.cancelOrder(orderId);
+
+      // Sync local myOrders list
+      final index = _myOrders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final list = List<OrderModel>.from(_myOrders);
+        list[index] = updatedOrder;
+        _myOrders = list;
+      }
+      return true;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<OrderModel?> recreatePaymentUrl(String orderId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedOrder = await _repository.recreatePaymentUrl(orderId);
+
+      // Sync local myOrders list
+      final index = _myOrders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final list = List<OrderModel>.from(_myOrders);
+        list[index] = updatedOrder;
+        _myOrders = list;
+      }
+      return updatedOrder;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return null;
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
