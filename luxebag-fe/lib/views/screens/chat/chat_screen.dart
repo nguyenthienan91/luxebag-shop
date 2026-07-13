@@ -31,7 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (has != _hasText) setState(() => _hasText = has);
     });
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels <= 50) {
+      if (_scrollController.position.maxScrollExtent - _scrollController.position.pixels <= 50) {
         if (_chatVM.hasMore && !_chatVM.isLoadingMore && !_chatVM.isLoading) {
           _chatVM.loadHistory(isLoadMore: true);
         }
@@ -58,16 +58,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _scrollToBottom({bool animated = false}) {
+    if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (_scrollController.hasClients) {
         if (animated) {
           _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
+            0.0,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
         } else {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          _scrollController.jumpTo(0.0);
         }
       }
     });
@@ -270,14 +272,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     ? const _EmptyChat()
                     : ListView.builder(
                         controller: _scrollController,
+                        reverse: true,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
                         ),
                         itemCount: vm.messages.length,
                         itemBuilder: (context, i) {
-                          final msg = vm.messages[i];
-                          final prevMsg = i > 0 ? vm.messages[i - 1] : null;
+                          final msg = vm.messages[vm.messages.length - 1 - i];
+                          final prevMsg = i < vm.messages.length - 1
+                              ? vm.messages[vm.messages.length - 2 - i]
+                              : null;
                           final showDateHeader =
                               prevMsg == null ||
                               !_isSameDay(prevMsg.sentAt, msg.sentAt);
