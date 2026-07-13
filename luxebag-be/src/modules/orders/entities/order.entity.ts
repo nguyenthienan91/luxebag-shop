@@ -67,6 +67,12 @@ export class Order {
 
   @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.UNPAID })
   paymentStatus!: PaymentStatus
+
+  @Prop({ type: String, default: null })
+  paymentUrl!: string | null
+
+  @Prop({ type: Date, default: null })
+  paymentUrlCreatedAt!: Date | null
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order)

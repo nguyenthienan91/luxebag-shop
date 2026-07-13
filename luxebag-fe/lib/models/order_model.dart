@@ -74,6 +74,8 @@ class OrderModel {
   final String shippingAddress;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? paymentUrl;
+  final DateTime? paymentUrlCreatedAt;
 
   const OrderModel({
     required this.id,
@@ -86,6 +88,8 @@ class OrderModel {
     required this.shippingAddress,
     required this.createdAt,
     required this.updatedAt,
+    this.paymentUrl,
+    this.paymentUrlCreatedAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -107,6 +111,10 @@ class OrderModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'] as String) ?? DateTime.now()
           : DateTime.now(),
+      paymentUrl: json['paymentUrl'] as String?,
+      paymentUrlCreatedAt: json['paymentUrlCreatedAt'] != null
+          ? DateTime.tryParse(json['paymentUrlCreatedAt'] as String)
+          : null,
     );
   }
 }

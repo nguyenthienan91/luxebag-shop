@@ -107,5 +107,15 @@ class OrderRepository {
     final data = response.data!['data'] as Map<String, dynamic>;
     return OrderModel.fromJson(data);
   }
+
+  /// POST /orders/:orderId/recreate-payment-url
+  /// [CUSTOMER] khởi tạo lại link thanh toán VNPay
+  Future<OrderModel> recreatePaymentUrl(String orderId) async {
+    final response = await _apiService.dio.post<Map<String, dynamic>>(
+      '/orders/$orderId/recreate-payment-url',
+    );
+    final data = response.data!['data'] as Map<String, dynamic>;
+    return OrderModel.fromJson(data);
+  }
 }
 

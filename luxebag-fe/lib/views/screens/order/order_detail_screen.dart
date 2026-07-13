@@ -6,6 +6,7 @@ import '../../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../../viewmodels/auth_viewmodel.dart';
 import '../../../viewmodels/order_viewmodel.dart';
+import '../checkout/vnpay_webview_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
@@ -19,11 +20,70 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   late OrderModel _order;
   bool _isCancelling = false;
+  bool _isOpeningPayment = false;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _startCountdown() {}
+
+  Future<void> _reloadOrder() async {
+    final vm = context.read<OrderViewModel>();
+    final updated = await vm.fetchOrderById(_order.id);
+    if (updated != null && mounted) {
+      setState(() {
+        _order = updated;
+      });
+    }
+  }
+
+  /// Luôn tạo link thanh toán mới rồi mở WebView
+  Future<void> _openPayment() async {
+    setState(() => _isOpeningPayment = true);
+    final vm = context.read<OrderViewModel>();
+    final updated = await vm.recreatePaymentUrl(_order.id);
+    if (!mounted) return;
+    setState(() => _isOpeningPayment = false);
+
+    if (updated == null || updated.paymentUrl == null || updated.paymentUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(vm.errorMessage ?? 'Không thể tạo liên kết thanh toán'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _order = updated);
+
+    final webViewResult = await Navigator.push<Map<String, String?>?>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VNPayWebViewScreen(paymentUrl: updated.paymentUrl!),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (webViewResult != null && webViewResult['vnp_ResponseCode'] == '00') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thanh toán thành công!'), backgroundColor: AppColors.success),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thanh toán bị hủy hoặc thất bại.'), backgroundColor: AppColors.error),
+      );
+    }
+    _reloadOrder();
   }
 
   void _cancelOrder(BuildContext context) {
@@ -86,6 +146,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           shippingAddress: _order.shippingAddress,
           createdAt: _order.createdAt,
           updatedAt: DateTime.now(),
+          paymentUrl: null,
+          paymentUrlCreatedAt: null,
         );
       });
     } else {
@@ -342,6 +404,38 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             isBold: true,
             valueColor: AppColors.primary,
           ),
+
+          // VNPay Payment Button
+          if (_order.paymentMethod == 'VNPAY' &&
+              (_order.paymentStatus == null || _order.paymentStatus!.toLowerCase() != 'paid') &&
+              _order.status == OrderStatus.pending) ...[
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isOpeningPayment ? null : _openPayment,
+                icon: _isOpeningPayment
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.payment, size: 18),
+                label: Text(_isOpeningPayment ? 'Đang tạo liên kết...' : 'Thanh toán VNPay'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+
           if (context.read<AuthViewModel>().currentUser?.role != 'admin') ...[
             const SizedBox(height: 32),
             OutlinedButton.icon(
