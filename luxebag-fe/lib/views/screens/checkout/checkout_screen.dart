@@ -43,7 +43,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final orderVM = context.read<OrderViewModel>();
 
     // Mapping từ Radio value sang giá trị Backend Enum (nếu là CARD hoặc BANK thì chuyển thành VNPAY)
-    String backendPaymentMethod = (_paymentMethod == 'card' || _paymentMethod == 'bank')
+    String backendPaymentMethod =
+        (_paymentMethod == 'card' || _paymentMethod == 'bank')
         ? 'VNPAY'
         : 'COD';
 
@@ -59,7 +60,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (result != null) {
       final paymentUrl = result['paymentUrl'] as String?;
       final orderId = (result['_id'] ?? result['id'] ?? '') as String;
-      
+
       if (paymentUrl != null && paymentUrl.isNotEmpty) {
         // Mở WebView thanh toán VNPay
         final webViewResult = await Navigator.push<Map<String, String?>?>(
@@ -93,7 +94,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text((orderVM.errorMessage?.isNotEmpty ?? false) ? orderVM.errorMessage! : 'Checkout failed.'),
+          content: Text(
+            (orderVM.errorMessage?.isNotEmpty ?? false)
+                ? orderVM.errorMessage!
+                : 'Checkout failed.',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -264,7 +269,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               value: 'cod',
               groupValue: _paymentMethod,
               icon: Icons.payments_outlined,
-              label: 'Cash on Delivery',
+              label: 'Cash on STAFF',
               description: 'Pay when your order arrives',
               onChanged: (v) => setState(() => _paymentMethod = v!),
             ),

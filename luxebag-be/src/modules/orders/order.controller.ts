@@ -19,7 +19,7 @@ export class OrderController {
 
   // GET /orders/admin — [ADMIN] lấy toàn bộ đơn hàng, có phân trang + lọc
   @Get('admin')
-  @Roles(UserRole.DELIVERY, UserRole.ADMIN)
+  @Roles(UserRole.STAFF, UserRole.ADMIN)
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'itemPerPage', required: false, type: Number, example: 10 })
   @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
@@ -45,7 +45,7 @@ export class OrderController {
 
   // GET /orders/revenue-stats — [ADMIN] Revenue statistics with flexible period
   @Get('revenue-stats')
-  @Roles(UserRole.DELIVERY, UserRole.ADMIN)
+  @Roles(UserRole.STAFF, UserRole.ADMIN)
   @ApiQuery({ name: 'period', required: false, type: String, enum: ['7d', '30d', '6m', '12m', 'year'], example: '7d' })
   async getRevenueStats(@Query('period') period?: string) {
     return okResponse(await this.orderService.getRevenueStats(period || '7d'))
@@ -82,7 +82,7 @@ export class OrderController {
 
   // PATCH /orders/:orderId/status — [ADMIN] cập nhật trạng thái đơn hàng
   @Patch(':orderId/status')
-  @Roles(UserRole.DELIVERY, UserRole.ADMIN)
+  @Roles(UserRole.STAFF, UserRole.ADMIN)
   async updateStatus(@Param('orderId') orderId: string, @Body() dto: UpdateOrderStatusDto) {
     return okResponse(await this.orderService.updateStatus(orderId, dto))
   }

@@ -19,7 +19,7 @@ export class ChatController {
   async getShopInfo() {
     const users = await this.usersService.findAll()
     const staffAndAdmins = users.filter((u) => 
-      (u.role === UserRole.ADMIN || u.role === UserRole.DELIVERY) && u.isActive
+      (u.role === UserRole.ADMIN || u.role === UserRole.STAFF) && u.isActive
     );
 
     return okResponse(

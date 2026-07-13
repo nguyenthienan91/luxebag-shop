@@ -22,7 +22,7 @@ class AdjustInventoryDto extends createZodDto(
 ) {}
 
 @Controller('inventory')
-@Roles(UserRole.DELIVERY, UserRole.ADMIN)
+@Roles(UserRole.STAFF, UserRole.ADMIN)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
