@@ -35,7 +35,7 @@ Luxebag/
 
 | Collection | Schema File | Mô tả |
 |---|---|---|
-| `users` | `user.entity.ts` | `email`, `password (bcrypt)`, `displayName`, `avatar`, `role` (customer/seller/admin/delivery), `isActive`, `isVerified`, `resetPasswordToken`, `resetPasswordOtp` |
+| `users` | `user.entity.ts` | `email`, `password (bcrypt)`, `displayName`, `avatar`, `role` (customer/seller/admin/STAFF), `isActive`, `isVerified`, `resetPasswordToken`, `resetPasswordOtp` |
 | `products` | `product.entity.ts` | `title`, `description`, `basePrice`, `currentPrice`, `images[]`, `categoryId`, `isActive`, `_destroy` (soft delete) |
 | `categories` | *(categories module)* | `name`, `slug`, `description`, `imageUrl` |
 | `carts` | `cart.entity.ts` | `userId (ref)`, `items [ { productId, quantity } ]` — Embedded design |
@@ -50,7 +50,7 @@ Luxebag/
 - **Inventory tách biệt:** Thay vì lưu `stock` trực tiếp trong `products`, dự án xây dựng module `Inventory` riêng biệt — chuyên nghiệp và dễ mở rộng hơn.
 - **Order Item Snapshot:** Trường `priceAtPurchase`, `title`, `sku` được đóng băng tại thời điểm mua.
 - **Soft Delete:** Sản phẩm bị xóa dùng cờ `_destroy: true` — bảo toàn lịch sử đơn hàng.
-- **Role-Based Access Control (RBAC):** 4 vai trò: `customer`, `seller`, `admin`, `delivery`.
+- **Role-Based Access Control (RBAC):** 4 vai trò: `customer`, `seller`, `admin`, `STAFF`.
 - **Wishlist Module:** Tính năng bổ sung — danh sách yêu thích.
 - **Categories Module:** Danh mục sản phẩm được quản lý độc lập thay vì hardcode enum.
 - **Revenue Stats API:** Endpoint thống kê doanh thu cho Admin (`7d`, `30d`, `6m`, `12m`, `year`).

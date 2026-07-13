@@ -202,7 +202,7 @@ Luxebag/
 - **Auto-Login on App Start** — stored token checked via `tryAutoLogin()`, profile restored from `/users/me`
 - **Forgot / Reset Password** — time-limited UUID token sent via Resend email service
 - **Change Password** — authenticated endpoint verifying old password before update
-- **Role-Based Access Control (RBAC)** — four roles: `customer`, `seller`, `delivery`, `admin`; enforced globally by `AuthGuard` + `RolesGuard`
+- **Role-Based Access Control (RBAC)** — four roles: `customer`, `seller`, `STAFF`, `admin`; enforced globally by `AuthGuard` + `RolesGuard`
 
 ### 🛍️ Product Catalogue
 
@@ -749,10 +749,10 @@ Based on code analysis and stub implementations found in the source:
 
 | Area | Improvement |
 |---|---|
-| **Payment Gateway** | Integrate VNPay, Stripe, or MoMo — only Cash on Delivery is functional today |
+| **Payment Gateway** | Integrate VNPay, Stripe, or MoMo — only Cash on STAFF is functional today |
 | **Push Notifications** | Replace the mock push log in `chat.gateway.ts` with Firebase Cloud Messaging (FCM) |
 | **SMS OTP** | `sendSMS()` in `auth.service.ts` is a stub — implement via Twilio or a Vietnamese SMS provider |
-| **Delivery Role** | `UserRole.DELIVERY` is defined but no delivery module or screen exists |
+| **STAFF Role** | `UserRole.STAFF` is defined but no STAFF module or screen exists |
 | **API Versioning** | `VersioningType.HEADER` is commented out in `init.ts` — enable for forward compatibility |
 | **Unit Test Coverage** | Existing tests are minimal smoke tests — expand with full service and integration test coverage |
 | **Wishlist ViewModel** | No dedicated `wishlist_viewmodel.dart` — wishlist state is managed ad-hoc in screens |
