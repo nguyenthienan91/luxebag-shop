@@ -70,6 +70,7 @@ class OrderModel {
   final double totalAmount;
   final OrderStatus status;
   final String paymentMethod;
+  final String? paymentStatus;
   final String shippingAddress;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -81,6 +82,7 @@ class OrderModel {
     required this.totalAmount,
     required this.status,
     required this.paymentMethod,
+    this.paymentStatus,
     required this.shippingAddress,
     required this.createdAt,
     required this.updatedAt,
@@ -97,6 +99,7 @@ class OrderModel {
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
       status: OrderStatusExt.fromString(json['status'] as String? ?? 'pending'),
       paymentMethod: json['paymentMethod'] as String? ?? 'COD',
+      paymentStatus: json['paymentStatus'] as String?,
       shippingAddress: json['shippingAddress'] as String? ?? '',
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()

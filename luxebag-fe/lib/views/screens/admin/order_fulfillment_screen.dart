@@ -433,25 +433,62 @@ class _OrderCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Text('Thanh toán: ',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.divider, width: 0.5),
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      const Text('Thanh toán: ',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppColors.divider, width: 0.5),
+                        ),
+                        child: Text(
+                          order.paymentMethod,
+                          style: const TextStyle(
+                              fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
                       ),
-                      child: Text(
-                        order.paymentMethod,
-                        style: const TextStyle(
-                            fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                      ),
-                    ),
-                  ],
+                      if (order.paymentStatus != null && order.paymentStatus!.isNotEmpty)
+                        Builder(
+                          builder: (context) {
+                            final isPaid = order.paymentStatus!.toLowerCase() == 'paid';
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isPaid
+                                    ? AppColors.success.withOpacity(0.1)
+                                    : AppColors.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: isPaid
+                                      ? AppColors.success.withOpacity(0.3)
+                                      : AppColors.error.withOpacity(0.3),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                isPaid ? 'Đã thanh toán' : 'Chưa thanh toán',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isPaid
+                                      ? AppColors.success
+                                      : AppColors.error,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   'Tổng cộng: \$${order.totalAmount.toStringAsFixed(2)}',
                   style: const TextStyle(

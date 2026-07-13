@@ -234,7 +234,16 @@ class OrderDetailScreen extends StatelessWidget {
             label: 'Payment Method',
             value: order.paymentMethod,
           ),
-          const SizedBox(height: 12),
+          if (order.paymentStatus != null && order.paymentStatus!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _SummaryRow(
+              label: 'Payment Status',
+              value: order.paymentStatus!.toLowerCase() == 'paid' ? 'Paid' : 'Unpaid',
+              valueColor: order.paymentStatus!.toLowerCase() == 'paid'
+                  ? AppColors.success
+                  : AppColors.error,
+            ),
+          ],
           _SummaryRow(
             label: 'Total Items',
             value: '${order.items.fold<int>(0, (sum, i) => sum + i.quantity)}',
