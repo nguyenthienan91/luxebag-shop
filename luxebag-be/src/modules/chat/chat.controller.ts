@@ -18,10 +18,12 @@ export class ChatController {
   @Roles()
   async getShopInfo() {
     const users = await this.usersService.findAll()
-    const admins = users.filter((u) => u.role === UserRole.ADMIN && u.isActive)
+    const staffAndAdmins = users.filter((u) => 
+      (u.role === UserRole.ADMIN || u.role === UserRole.DELIVERY) && u.isActive
+    );
 
     return okResponse(
-      admins.map((admin) => ({
+      staffAndAdmins.map((admin) => ({
         id: admin.id,
         displayName: admin.displayName,
         avatar: admin.avatar,
