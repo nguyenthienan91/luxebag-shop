@@ -45,16 +45,17 @@ class _VNPayWebViewScreenState extends State<VNPayWebViewScreen> {
           },
           onNavigationRequest: (NavigationRequest request) {
             debugPrint('[VNPayWebView] Navigating to: ${request.url}');
-            // Chặn đường dẫn return URL từ VNPay
-            if (request.url.contains('luxebag-backend.onrender.com/api/payments/vnpay/return')) {
-              debugPrint('[VNPayWebView] Return URL detected: ${request.url}');
+            
+            // Cho phép điều hướng đến API return của BE để BE cập nhật DB,
+            // sau đó bắt kết quả redirect cuối cùng từ BE để đóng WebView
+            if (request.url.contains('/payment-success') || request.url.contains('/payment-failed')) {
+              debugPrint('[VNPayWebView] Redirect target detected: ${request.url}');
               final uri = Uri.parse(request.url);
-              final responseCode = uri.queryParameters['vnp_ResponseCode'];
-              final txnRef = uri.queryParameters['vnp_TxnRef'] ?? '';
+              final txnRef = uri.queryParameters['orderId'] ?? '';
+              final isSuccess = request.url.contains('/payment-success');
               
-              // Đóng WebView và trả về kết quả
               Navigator.of(context).pop({
-                'vnp_ResponseCode': responseCode,
+                'vnp_ResponseCode': isSuccess ? '00' : '99',
                 'vnp_TxnRef': txnRef,
               });
               return NavigationDecision.prevent;

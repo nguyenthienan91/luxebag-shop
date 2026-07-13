@@ -5,11 +5,98 @@ import '../../../models/order_model.dart';
 import '../../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../../viewmodels/auth_viewmodel.dart';
+import '../../../viewmodels/order_viewmodel.dart';
 
-class OrderDetailScreen extends StatelessWidget {
+class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
 
   const OrderDetailScreen({super.key, required this.order});
+
+  @override
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  late OrderModel _order;
+  bool _isCancelling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _order = widget.order;
+  }
+
+  void _cancelOrder(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Xác nhận hủy đơn hàng',
+          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        content: const Text(
+          'Bạn có chắc chắn muốn hủy đơn hàng này? Thao tác này không thể hoàn tác.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Đóng', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _performCancel();
+            },
+            child: const Text('Hủy đơn'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performCancel() async {
+    setState(() => _isCancelling = true);
+    final vm = context.read<OrderViewModel>();
+    final success = await vm.cancelMyOrder(_order.id);
+    if (!mounted) return;
+    setState(() => _isCancelling = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đơn hàng đã được hủy thành công')),
+      );
+      setState(() {
+        _order = OrderModel(
+          id: _order.id,
+          userId: _order.userId,
+          items: _order.items,
+          totalAmount: _order.totalAmount,
+          status: OrderStatus.cancelled,
+          paymentMethod: _order.paymentMethod,
+          paymentStatus: _order.paymentStatus,
+          shippingAddress: _order.shippingAddress,
+          createdAt: _order.createdAt,
+          updatedAt: DateTime.now(),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(vm.errorMessage ?? 'Hủy đơn hàng thất bại'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +152,7 @@ class OrderDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    order.id.substring(order.id.length - 8).toUpperCase(),
+                    _order.id.substring(_order.id.length - 8).toUpperCase(),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -75,7 +162,7 @@ class OrderDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              _StatusBadge(status: order.status),
+              _StatusBadge(status: _order.status),
             ],
           ),
           const SizedBox(height: 16),
@@ -85,7 +172,7 @@ class OrderDetailScreen extends StatelessWidget {
                   size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Text(
-                _formatDate(order.createdAt),
+                _formatDate(_order.createdAt),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textSecondary,
@@ -107,7 +194,7 @@ class OrderDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          ...order.items.map((item) => Padding(
+          ..._order.items.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Row(
                   children: [
@@ -206,7 +293,7 @@ class OrderDetailScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  order.shippingAddress,
+                  _order.shippingAddress,
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textPrimary,
@@ -232,33 +319,33 @@ class OrderDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _SummaryRow(
             label: 'Payment Method',
-            value: order.paymentMethod,
+            value: _order.paymentMethod,
           ),
-          if (order.paymentStatus != null && order.paymentStatus!.isNotEmpty) ...[
+          if (_order.paymentStatus != null && _order.paymentStatus!.isNotEmpty) ...[
             const SizedBox(height: 12),
             _SummaryRow(
               label: 'Payment Status',
-              value: order.paymentStatus!.toLowerCase() == 'paid' ? 'Paid' : 'Unpaid',
-              valueColor: order.paymentStatus!.toLowerCase() == 'paid'
+              value: _order.paymentStatus!.toLowerCase() == 'paid' ? 'Paid' : 'Unpaid',
+              valueColor: _order.paymentStatus!.toLowerCase() == 'paid'
                   ? AppColors.success
                   : AppColors.error,
             ),
           ],
           _SummaryRow(
             label: 'Total Items',
-            value: '${order.items.fold<int>(0, (sum, i) => sum + i.quantity)}',
+            value: '${_order.items.fold<int>(0, (sum, i) => sum + i.quantity)}',
           ),
           const SizedBox(height: 12),
           _SummaryRow(
             label: 'Total Amount',
-            value: '\$${order.totalAmount.toStringAsFixed(2)}',
+            value: '\$${_order.totalAmount.toStringAsFixed(2)}',
             isBold: true,
             valueColor: AppColors.primary,
           ),
           if (context.read<AuthViewModel>().currentUser?.role != 'admin') ...[
             const SizedBox(height: 32),
             OutlinedButton.icon(
-              onPressed: () => context.push('/chat?orderId=${order.id}'),
+              onPressed: () => context.push('/chat?orderId=${_order.id}'),
               icon: const Icon(Icons.chat_bubble_outline),
               label: const Text('Trao đổi về đơn hàng này'),
               style: OutlinedButton.styleFrom(
@@ -270,6 +357,34 @@ class OrderDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
+            if (_order.status == OrderStatus.pending) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _isCancelling ? null : () => _cancelOrder(context),
+                icon: _isCancelling
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.error,
+                        ),
+                      )
+                    : const Icon(Icons.cancel_outlined, color: AppColors.error),
+                label: Text(
+                  _isCancelling ? 'Đang hủy...' : 'Hủy đơn hàng',
+                  style: const TextStyle(color: AppColors.error),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
           ],
           const SizedBox(height: 40),
         ],

@@ -267,6 +267,55 @@ export class OrderService {
     return order
   }
 
+  // [CUSTOMER] Khách hàng tự hủy đơn
+  async cancelOrder(orderId: string, userId: string): Promise<OrderDocument> {
+    const order = await this.orderModel.findOne({ _id: orderId, userId: new Types.ObjectId(userId) }).exec()
+    if (!order) throw new NotFoundException(`Order ${orderId} not found`)
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(`Cannot cancel order in state "${order.status}"`)
+    }
+
+    // Hoàn kho khi hủy đơn
+    for (const item of order.items) {
+      await this.inventoryModel
+        .findOneAndUpdate(
+          { productId: item.productId },
+          {
+            $inc: { stock: item.quantity },
+            $push: {
+              logs: {
+                change: item.quantity,
+                reason: 'CANCEL_ORDER_RESTORE',
+                note: `Hoàn kho do khách hàng hủy đơn hàng #${orderId}`,
+                createdAt: new Date(),
+              },
+            },
+          },
+        )
+        .exec()
+    }
+
+    order.status = OrderStatus.CANCELLED
+    await order.save()
+
+    // Gửi thông báo hủy đơn
+    try {
+      await this.notificationsService.createNotification(
+        order.userId,
+        'Đơn hàng đã hủy ❌',
+        `Đơn hàng #${order._id} của bạn đã được hủy thành công.`,
+        'order',
+        'Order',
+        order._id.toString(),
+      )
+    } catch (err) {
+      console.error('Failed to create cancellation notification:', err)
+    }
+
+    return order
+  }
+
   // [ADMIN] GET /orders/revenue-stats — Revenue statistics with flexible period
   async getRevenueStats(period: string = '7d'): Promise<RevenueStatsDto> {
     const validPeriods = ['7d', '30d', '6m', '12m', 'year']

@@ -84,4 +84,10 @@ export class OrderController {
   async updateStatus(@Param('orderId') orderId: string, @Body() dto: UpdateOrderStatusDto) {
     return okResponse(await this.orderService.updateStatus(orderId, dto))
   }
+
+  // PATCH /orders/:id/cancel — [CUSTOMER] Khách hàng tự hủy đơn
+  @Patch(':id/cancel')
+  async cancelOrder(@Param('id') id: string, @User() user: UserInfo) {
+    return okResponse(await this.orderService.cancelOrder(id, user.userID))
+  }
 }

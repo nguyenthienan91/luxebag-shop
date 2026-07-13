@@ -180,6 +180,31 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> cancelMyOrder(String orderId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedOrder = await _repository.cancelOrder(orderId);
+
+      // Sync local myOrders list
+      final index = _myOrders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final list = List<OrderModel>.from(_myOrders);
+        list[index] = updatedOrder;
+        _myOrders = list;
+      }
+      return true;
+    } catch (e) {
+      _errorMessage = _parseError(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> updateOrderStatus(String orderId, OrderStatus nextStatus) async {
     _isLoading = true;
     _errorMessage = null;

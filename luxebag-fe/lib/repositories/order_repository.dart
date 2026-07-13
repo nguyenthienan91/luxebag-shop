@@ -97,5 +97,15 @@ class OrderRepository {
     final data = response.data!['data'] as Map<String, dynamic>;
     return OrderModel.fromJson(data);
   }
+
+  /// PATCH /orders/:orderId/cancel
+  /// [CUSTOMER] khách hàng tự hủy đơn hàng đang pending
+  Future<OrderModel> cancelOrder(String orderId) async {
+    final response = await _apiService.dio.patch<Map<String, dynamic>>(
+      '/orders/$orderId/cancel',
+    );
+    final data = response.data!['data'] as Map<String, dynamic>;
+    return OrderModel.fromJson(data);
+  }
 }
 
