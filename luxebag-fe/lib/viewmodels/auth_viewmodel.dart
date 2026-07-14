@@ -262,6 +262,13 @@ class AuthViewModel extends ChangeNotifier {
           if (msg is String && msg.isNotEmpty) return msg;
           return 'Email hoặc mật khẩu không đúng.';
         case 403:
+          final msg = e.response?.data?['message'];
+          if (msg is String && msg.isNotEmpty) {
+            if (msg == 'Account has been banned') {
+              return 'Tài khoản của bạn đã bị khóa.';
+            }
+            return msg;
+          }
           return 'Bạn không có quyền thực hiện hành động này.';
         case 404:
           return 'Không tìm thấy tài nguyên.';

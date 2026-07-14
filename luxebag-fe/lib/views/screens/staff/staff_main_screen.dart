@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../viewmodels/chat_viewmodel.dart';
-import 'staff_product_management_screen.dart';
 import 'staff_inventory_management_screen.dart';
 import 'staff_order_fulfillment_screen.dart';
 import '../profile/profile_screen.dart';
@@ -40,7 +39,6 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
       body: IndexedStack(
         index: _currentIndex,
         children: const [
-          StaffProductManagementScreen(),
           StaffInventoryManagementScreen(),
           StaffOrderFulfillmentScreen(),
           StaffChatListScreen(),
@@ -71,18 +69,10 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _StaffNavItem(
-                      icon: Icons.inventory_2_outlined,
-                      activeIcon: Icons.inventory_2_rounded,
-                      label: 'Products',
-                      index: 0,
-                      currentIndex: _currentIndex,
-                      onTap: switchTab,
-                    ),
-                    _StaffNavItem(
                       icon: Icons.warehouse_outlined,
                       activeIcon: Icons.warehouse_rounded,
                       label: 'Inventory',
-                      index: 1,
+                      index: 0,
                       currentIndex: _currentIndex,
                       onTap: switchTab,
                     ),
@@ -90,7 +80,7 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
                       icon: Icons.local_shipping_outlined,
                       activeIcon: Icons.local_shipping_rounded,
                       label: 'Orders',
-                      index: 2,
+                      index: 1,
                       currentIndex: _currentIndex,
                       onTap: switchTab,
                     ),
@@ -98,7 +88,7 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
                       icon: Icons.chat_bubble_outline_rounded,
                       activeIcon: Icons.chat_bubble_rounded,
                       label: 'Messages',
-                      index: 3,
+                      index: 2,
                       currentIndex: _currentIndex,
                       onTap: switchTab,
                       badgeCount: chatVM.totalUnreadMessages,
@@ -107,7 +97,7 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
                       label: 'Profile',
-                      index: 4,
+                      index: 3,
                       currentIndex: _currentIndex,
                       onTap: switchTab,
                     ),
