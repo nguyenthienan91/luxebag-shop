@@ -5,6 +5,8 @@ class UserModel {
   final String? phone;
   final String? avatarUrl;
   final String role;
+  final bool isActive;
+  final String? address;
 
   const UserModel({
     required this.id,
@@ -13,6 +15,8 @@ class UserModel {
     this.phone,
     this.avatarUrl,
     this.role = 'customer',
+    this.isActive = true,
+    this.address,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -23,6 +27,8 @@ class UserModel {
       phone: json['phoneNumber'] as String?,
       avatarUrl: json['avatar'] as String?,
       role: json['role'] as String? ?? 'customer',
+      isActive: json['isActive'] as bool? ?? true,
+      address: json['address'] as String?,
     );
   }
 
@@ -33,6 +39,8 @@ class UserModel {
     if (phone != null) 'phone': phone,
     if (avatarUrl != null) 'avatarUrl': avatarUrl,
     'role': role,
+    'isActive': isActive,
+    if (address != null) 'address': address,
   };
 
   UserModel copyWith({
@@ -42,6 +50,8 @@ class UserModel {
     String? phone,
     String? avatarUrl,
     String? role,
+    bool? isActive,
+    String? address,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -50,6 +60,8 @@ class UserModel {
       phone: phone ?? this.phone,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       role: role ?? this.role,
+      isActive: isActive ?? this.isActive,
+      address: address ?? this.address,
     );
   }
 }

@@ -10,6 +10,7 @@ import 'viewmodels/order_viewmodel.dart';
 import 'viewmodels/chat_viewmodel.dart';
 import 'viewmodels/notification_viewmodel.dart';
 import 'viewmodels/inventory_viewmodel.dart';
+import 'viewmodels/user_viewmodel.dart';
 
 void main() async {
   // Bắt buộc gọi trước khi sử dụng SharedPreferences / bất kỳ plugin nào.
@@ -53,6 +54,7 @@ class LuxeBagApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
         ChangeNotifierProvider(create: (_) => InventoryViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel()),
       ],
       child: const _AppBootstrap(),
     );
