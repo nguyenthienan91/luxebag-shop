@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../viewmodels/chat_viewmodel.dart';
 import 'product_management_screen.dart';
 import 'inventory_management_screen.dart';
-import 'order_fulfillment_screen.dart';
 import '../profile/profile_screen.dart';
 import 'admin_chat_list_screen.dart';
 
@@ -42,7 +41,6 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
         children: const [
           ProductManagementScreen(),
           InventoryManagementScreen(),
-          OrderFulfillmentScreen(),
           AdminChatListScreen(),
           ProfileScreen(),
         ],
@@ -87,18 +85,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                       onTap: switchTab,
                     ),
                     _AdminNavItem(
-                      icon: Icons.local_shipping_outlined,
-                      activeIcon: Icons.local_shipping_rounded,
-                      label: 'Orders',
-                      index: 2,
-                      currentIndex: _currentIndex,
-                      onTap: switchTab,
-                    ),
-                    _AdminNavItem(
                       icon: Icons.chat_bubble_outline_rounded,
                       activeIcon: Icons.chat_bubble_rounded,
                       label: 'Messages',
-                      index: 3,
+                      index: 2,
                       currentIndex: _currentIndex,
                       onTap: switchTab,
                       badgeCount: chatVM.totalUnreadMessages,
@@ -107,7 +97,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
                       label: 'Profile',
-                      index: 4,
+                      index: 3,
                       currentIndex: _currentIndex,
                       onTap: switchTab,
                     ),
