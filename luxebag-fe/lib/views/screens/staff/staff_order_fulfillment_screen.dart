@@ -106,6 +106,14 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
                   messenger.showSnackBar(
                     const SnackBar(content: Text('Đã hủy đơn hàng thành công và hoàn kho')),
                   );
+                  final targetIndex = _statuses.indexOf(OrderStatus.cancelled);
+                  if (targetIndex != -1) {
+                    if (_tabController.index == targetIndex) {
+                      _fetchOrders();
+                    } else {
+                      _tabController.animateTo(targetIndex);
+                    }
+                  }
                 } else {
                   messenger.showSnackBar(
                     const SnackBar(content: Text('Lỗi khi hủy đơn hàng')),
@@ -135,6 +143,14 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
         messenger.showSnackBar(
           SnackBar(content: Text('Chuyển trạng thái sang "$actionName" thành công')),
         );
+        final targetIndex = _statuses.indexOf(nextStatus);
+        if (targetIndex != -1) {
+          if (_tabController.index == targetIndex) {
+            _fetchOrders();
+          } else {
+            _tabController.animateTo(targetIndex);
+          }
+        }
       } else {
         messenger.showSnackBar(
           SnackBar(content: Text('Lỗi khi chuyển trạng thái sang "$actionName"')),

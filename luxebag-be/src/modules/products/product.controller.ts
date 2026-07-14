@@ -60,30 +60,30 @@ export class ProductController {
     return okResponse(await this.productService.findById(id))
   }
 
-  // POST /products — chỉ STAFF và ADMIN mới được tạo
+  // POST /products — chỉ ADMIN mới được tạo
   @Post()
-  @Roles(UserRole.STAFF, UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async create(@Body() createProductDto: CreateProductDto) {
     return okResponse(await this.productService.create(createProductDto))
   }
 
   // PATCH /products/:id
   @Patch(':id')
-  @Roles(UserRole.STAFF, UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return okResponse(await this.productService.update(id, updateProductDto))
   }
 
   // DELETE /products/:id — soft delete
   @Delete(':id')
-  @Roles(UserRole.STAFF, UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async remove(@Param('id') id: string) {
     return okResponse(await this.productService.softDelete(id))
   }
 
   // POST /products/:productId/upload-images — upload ảnh sản phẩm (thay thế toàn bộ)
   @Post(':productId/upload-images')
-  @Roles(UserRole.STAFF, UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @UseInterceptors(FilesInterceptor('images', 10))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
