@@ -289,7 +289,7 @@ class _ImageCarousel extends StatelessWidget {
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -341,35 +341,40 @@ class _ImageCarousel extends StatelessWidget {
           // Thumbnail strip
           if (images.length > 1)
             Positioned(
-              right: 12,
-              top: 60,
-              child: Column(
-                children: List.generate(
-                  images.length,
-                  (i) => GestureDetector(
-                    onTap: () => pageController.animateToPage(
-                      i,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 6),
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: i == currentIndex
-                              ? AppColors.primary
-                              : Colors.transparent,
-                          width: 2,
+              right: 9,
+              top: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 58),
+                  child: Column(
+                    children: List.generate(
+                      images.length,
+                      (i) => GestureDetector(
+                        onTap: () => pageController.animateToPage(
+                          i,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
                         ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: CachedNetworkImage(
-                          imageUrl: images[i],
-                          fit: BoxFit.cover,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: i == currentIndex
+                                  ? AppColors.primary
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: CachedNetworkImage(
+                              imageUrl: images[i],
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -402,8 +407,19 @@ class _NavCircleButton extends StatelessWidget {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white,
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.black.withOpacity(0.08),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Icon(icon, size: 18, color: iconColor ?? AppColors.textPrimary),
       ),
