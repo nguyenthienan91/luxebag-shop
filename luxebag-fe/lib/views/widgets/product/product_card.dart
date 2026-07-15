@@ -216,8 +216,19 @@ class _WishlistButton extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white,
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.black.withOpacity(0.08),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Icon(
           isFavorited ? Icons.favorite : Icons.favorite_border,
