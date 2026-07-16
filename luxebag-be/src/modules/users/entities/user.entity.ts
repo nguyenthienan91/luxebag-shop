@@ -60,6 +60,14 @@ export class User {
   @Prop({ type: Date, default: null })
   resetPasswordExpiresAt!: Date | null // Thời hạn của Token hoặc OTP
 
+  // --- LUỒNG EMAIL VERIFICATION ---
+
+  @Prop({ type: String, default: null })
+  verificationOtp!: string | null
+
+  @Prop({ type: Date, default: null })
+  verificationOtpExpiresAt!: Date | null
+
   @Prop({ default: false })
   _destroy!: boolean
 }

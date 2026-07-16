@@ -8,6 +8,7 @@ import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/forgot_password_screen.dart';
 import '../views/screens/auth/otp_verification_screen.dart';
 import '../views/screens/auth/reset_password_screen.dart';
+import '../views/screens/auth/email_verification_screen.dart';
 import '../views/screens/main/main_screen.dart';
 import '../views/screens/admin/admin_main_screen.dart';
 import '../views/screens/product/product_detail_screen.dart';
@@ -64,6 +65,14 @@ final GoRouter appRouter = GoRouter(
         final email = state.uri.queryParameters['email'] ?? '';
         final otp = state.uri.queryParameters['otp'] ?? '';
         return ResetPasswordScreen(email: email, otp: otp);
+      },
+    ),
+    GoRoute(
+      path: '/email-verification',
+      name: 'email-verification',
+      builder: (context, state) {
+        final email = state.uri.queryParameters['email'] ?? '';
+        return EmailVerificationScreen(email: email);
       },
     ),
     GoRoute(

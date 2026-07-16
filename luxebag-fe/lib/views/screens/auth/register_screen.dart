@@ -44,10 +44,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!mounted) return;
     if (success) {
+      final email = _emailController.text.trim();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
-            '🎉 Đăng ký tài khoản thành công! Vui lòng đăng nhập.',
+            '🎉 Đăng ký thành công! Vui lòng xác thực email của bạn.',
           ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -55,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           duration: const Duration(seconds: 3),
         ),
       );
-      context.go('/login');
+      context.push('/email-verification?email=${Uri.encodeComponent(email)}');
     } else if (authVM.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
