@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Res, UseGuards, Query } from '@nestjs/common'
 import { AuthService } from './auth.service'
-import { SignInDto, SignInResponseDto, SignUpDto, GoogleLoginDto } from './dto/sign.dto'
+import { SignInDto, SignInResponseDto, SignUpDto, GoogleLoginDto, VerifyEmailDto, ResendVerificationDto } from './dto/sign.dto'
 import { SkipAuth } from './auth.decorator'
 import type { Response } from 'express'
 import ms from 'ms'
@@ -21,6 +21,29 @@ export class AuthController {
   @SkipAuth()
   signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto)
+  }
+
+  @Post('verify-email')
+  @SkipAuth()
+  @ZodResponse({ type: SignInResponseDto })
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto, @Res({ passthrough: true }) res: Response) {
+    const data = await this.authService.verifyEmail(verifyEmailDto)
+
+    res.cookie(TokenKeys.ACCESS_TOKEN_KEY, data.accessToken, {
+      ...COOKIE_CONFIG_DEFAULT,
+      maxAge: ms(CookiesToken.ACCESS_TOKEN_EXPIRE_IN),
+    })
+    res.cookie(TokenKeys.REFRESH_TOKEN_KEY, data.refreshToken, {
+      ...COOKIE_CONFIG_DEFAULT,
+      maxAge: ms(CookiesToken.REFRESH_TOKEN_EXPIRE_IN),
+    })
+    return data
+  }
+
+  @Post('resend-verification')
+  @SkipAuth()
+  async resendVerification(@Body() resendVerificationDto: ResendVerificationDto) {
+    return await this.authService.resendVerificationOtp(resendVerificationDto)
   }
 
   @Post('sign-in')

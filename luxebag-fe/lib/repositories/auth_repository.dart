@@ -112,6 +112,36 @@ class AuthRepository {
     );
   }
 
+  /// Xác thực email dùng mã OTP đăng ký.
+  Future<UserModel> verifyEmail({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/verify-email',
+      data: {'email': email, 'otp': otp},
+    );
+
+    final body = response.data!;
+    final accessToken = body['accessToken'] as String;
+    final refreshToken = body['refreshToken'] as String;
+
+    await _tokenService.saveTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+
+    return getProfile();
+  }
+
+  /// Gửi lại mã OTP xác thực email đăng ký.
+  Future<void> resendVerificationOtp(String email) async {
+    await _dio.post<dynamic>(
+      '/auth/resend-verification',
+      data: {'email': email},
+    );
+  }
+
   // ── Get Profile ──────────────────────────────────────────────────────────────
 
   /// Lấy thông tin người dùng hiện tại từ token đã lưu.

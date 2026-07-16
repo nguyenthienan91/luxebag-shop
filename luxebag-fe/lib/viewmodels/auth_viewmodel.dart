@@ -203,6 +203,35 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  /// Xác thực email dùng OTP đăng ký. Trả về [true] nếu thành công.
+  Future<bool> verifyEmail(String email, String otp) async {
+    _setLoading(true);
+    try {
+      _currentUser = await _repository.verifyEmail(
+        email: email,
+        otp: otp,
+      );
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(_parseError(e));
+      return false;
+    }
+  }
+
+  /// Gửi lại mã OTP xác thực email đăng ký. Trả về [true] nếu thành công.
+  Future<bool> resendVerificationOtp(String email) async {
+    _setLoading(true);
+    try {
+      await _repository.resendVerificationOtp(email);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(_parseError(e));
+      return false;
+    }
+  }
+
   // ── Update Profile ────────────────────────────────────────────────────────────
 
   /// Cập nhật tên và số điện thoại. Trả về [true] nếu thành công.

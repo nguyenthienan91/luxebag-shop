@@ -640,10 +640,18 @@ class _StockAdjustDialogState extends State<_StockAdjustDialog> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              'Số lượng thay đổi:',
-                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                            ),
+                            const Text.rich(
+                               TextSpan(
+                                 text: 'Số lượng thay đổi:',
+                                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                 children: [
+                                   TextSpan(
+                                     text: ' *',
+                                     style: TextStyle(color: Colors.red),
+                                   ),
+                                 ],
+                               ),
+                             ),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _amountController,

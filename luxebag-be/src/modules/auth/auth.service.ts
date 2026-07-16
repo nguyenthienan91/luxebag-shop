@@ -11,7 +11,7 @@ import { JwtPayload, JWTToken, TokenKeys } from './consts/jwt.const'
 import { randomUUID } from 'crypto'
 import { StringUtilService } from '../../../common/utils/string-util/string-util.service'
 import { MailService } from '../../../common/utils/mail-util/mail.service'
-import { SignInDto, SignUpDto } from './dto/sign.dto'
+import { SignInDto, SignUpDto, VerifyEmailDto, ResendVerificationDto } from './dto/sign.dto'
 import { ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, VerifyOtpDto } from './dto/password.dto'
 import { WithUser } from '../../../common/decorators/user.decorator'
 import { OAuth2Client } from 'google-auth-library'
@@ -52,16 +52,31 @@ export class AuthService {
     const existing = await this.usersService.getUser({ email })
     if (existing) throw new BadRequestException('User already exist!')
 
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const expires = new Date(Date.now() + 15 * 60 * 1000)
+
     const userCreated = await this.usersService.createUser({
       email,
       password,
+      verificationOtp: otp,
+      verificationOtpExpiresAt: expires,
+      isVerified: false,
       ...otherInfo,
     })
-    // await this.walletsService.createWallet(userCreated._id)
+
+    try {
+      await this.mailService.sendVerificationOtpEmail(email, otp)
+    } catch (error) {
+      console.error('Error sending verification email during signup:', error)
+    }
+
     const { password: _pw, ...userResponse } = userCreated.toObject({
       virtuals: true,
     })
-    return userResponse
+    return {
+      message: 'Đăng ký thành công! Vui lòng xác thực email của bạn.',
+      user: userResponse,
+    }
   }
 
   async signIn(signInDto: SignInDto) {
@@ -76,10 +91,80 @@ export class AuthService {
     const isMatch = await this.stringUtilService.compare(password, user.password)
     if (!isMatch) throw new UnauthorizedException()
 
+    if (!user.isVerified) {
+      // 1. Tạo mới OTP xác thực email và lưu vào database
+      const otp = Math.floor(100000 + Math.random() * 900000).toString()
+      const expires = new Date(Date.now() + 15 * 60 * 1000)
+
+      await this.usersService.update(user.id, {
+        verificationOtp: otp,
+        verificationOtpExpiresAt: expires.toISOString(),
+      })
+
+      // 2. Gửi email xác thực mới
+      try {
+        await this.mailService.sendVerificationOtpEmail(user.email, otp)
+      } catch (error) {
+        console.error('Error sending verification email during sign-in:', error)
+      }
+
+      throw new ForbiddenException('Tài khoản chưa được xác thực email. Vui lòng xác thực trước khi đăng nhập.')
+    }
+
     const userID = user.id
     const userEmail = user.email
     const role = user.role
     return await this.createToken({ userID, userEmail, role })
+  }
+
+  async verifyEmail(dto: VerifyEmailDto) {
+    const { email, otp } = dto
+    const user = await this.usersService.getUser({ email })
+
+    if (!user) throw new BadRequestException('Không tìm thấy người dùng')
+    if (user.isVerified) throw new BadRequestException('Tài khoản đã được xác thực')
+
+    if (!user.verificationOtp || user.verificationOtp !== otp) {
+      throw new BadRequestException('Mã OTP không chính xác')
+    }
+
+    const isExpired = !user.verificationOtpExpiresAt || new Date(user.verificationOtpExpiresAt) < new Date()
+    if (isExpired) throw new BadRequestException('Mã OTP đã hết hạn')
+
+    await this.usersService.update(user.id, {
+      isVerified: true,
+      verificationOtp: null,
+      verificationOtpExpiresAt: null,
+    })
+
+    // Tự động đăng nhập người dùng sau khi xác thực thành công
+    const userID = user.id
+    const userEmail = user.email
+    const role = user.role
+    return await this.createToken({ userID, userEmail, role })
+  }
+
+  async resendVerificationOtp(dto: ResendVerificationDto) {
+    const { email } = dto
+    const user = await this.usersService.getUser({ email })
+
+    if (!user) throw new BadRequestException('Không tìm thấy người dùng')
+    if (user.isVerified) throw new BadRequestException('Tài khoản đã được xác thực')
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const expires = new Date(Date.now() + 15 * 60 * 1000)
+
+    await this.usersService.update(user.id, {
+      verificationOtp: otp,
+      verificationOtpExpiresAt: expires.toISOString(),
+    })
+
+    try {
+      await this.mailService.sendVerificationOtpEmail(user.email, otp)
+      return { message: 'Đã gửi lại mã OTP xác thực email' }
+    } catch (error) {
+      throw new InternalServerErrorException('Lỗi khi gửi email')
+    }
   }
 
   async refreshToken(refreshToken: string) {

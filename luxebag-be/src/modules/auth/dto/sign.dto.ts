@@ -25,4 +25,17 @@ const GoogleLoginSchema = z.object({
 
 class GoogleLoginDto extends createZodDto(GoogleLoginSchema) {}
 
-export { SignInDto, SignInResponseDto, SignUpDto, GoogleLoginDto }
+const VerifyEmailSchema = z.object({
+  email: UserSchema.shape.email,
+  otp: z.string().length(6, { message: 'OTP must be exactly 6 digits' }),
+})
+
+class VerifyEmailDto extends createZodDto(VerifyEmailSchema) {}
+
+const ResendVerificationSchema = z.object({
+  email: UserSchema.shape.email,
+})
+
+class ResendVerificationDto extends createZodDto(ResendVerificationSchema) {}
+
+export { SignInDto, SignInResponseDto, SignUpDto, GoogleLoginDto, VerifyEmailDto, ResendVerificationDto }

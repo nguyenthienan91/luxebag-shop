@@ -231,6 +231,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               label: 'Full Name',
               hint: 'John Doe',
               icon: Icons.person_outline,
+              isRequired: true,
               validator: (v) => (v == null || v.trim().length < 2)
                   ? 'Please enter your full name'
                   : null,
@@ -243,6 +244,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               hint: '+84 xxx xxx xxx',
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
+              isRequired: true,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Please enter your phone number'
                   : null,
@@ -255,6 +257,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               hint: '123 Example Street, District 1',
               icon: Icons.location_on_outlined,
               maxLines: 2,
+              isRequired: true,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Please enter your address'
                   : null,
@@ -411,6 +414,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
     String? Function(String?)? validator,
+    bool isRequired = false,
   }) {
     return TextFormField(
       controller: controller,
@@ -419,7 +423,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       validator: validator,
       style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
       decoration: InputDecoration(
-        labelText: label,
+        label: Text.rich(
+          TextSpan(
+            text: label,
+            children: [
+              if (isRequired)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+            ],
+          ),
+        ),
         hintText: hint,
         prefixIcon: Icon(icon, size: 20, color: AppColors.textSecondary),
         filled: true,

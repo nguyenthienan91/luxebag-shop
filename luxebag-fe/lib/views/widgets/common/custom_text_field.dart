@@ -14,6 +14,8 @@ class CustomTextField extends StatelessWidget {
   final bool autofocus;
   final int? maxLines;
 
+  final bool isRequired;
+
   const CustomTextField({
     super.key,
     required this.hintText,
@@ -27,6 +29,7 @@ class CustomTextField extends StatelessWidget {
     this.onFieldSubmitted,
     this.autofocus = false,
     this.maxLines = 1,
+    this.isRequired = false,
   });
 
   @override
@@ -42,7 +45,20 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
       decoration: InputDecoration(
-        hintText: hintText,
+        label: isRequired
+            ? Text.rich(
+                TextSpan(
+                  text: hintText,
+                  children: const [
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+              )
+            : null,
+        hintText: isRequired ? null : hintText,
         suffixIcon: suffixIcon,
         prefixIcon: prefixIcon,
       ),
