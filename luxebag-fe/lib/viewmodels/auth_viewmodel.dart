@@ -169,6 +169,40 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  /// Xác thực mã OTP. Trả về [true] nếu hợp lệ.
+  Future<bool> verifyOtp(String email, String otp) async {
+    _setLoading(true);
+    try {
+      await _repository.verifyOtp(email, otp);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(_parseError(e));
+      return false;
+    }
+  }
+
+  /// Đặt lại mật khẩu. Trả về [true] nếu thành công.
+  Future<bool> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    _setLoading(true);
+    try {
+      await _repository.resetPassword(
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+      );
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(_parseError(e));
+      return false;
+    }
+  }
+
   // ── Update Profile ────────────────────────────────────────────────────────────
 
   /// Cập nhật tên và số điện thoại. Trả về [true] nếu thành công.

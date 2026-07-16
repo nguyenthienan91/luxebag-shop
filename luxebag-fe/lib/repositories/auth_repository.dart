@@ -88,6 +88,30 @@ class AuthRepository {
     );
   }
 
+  /// Xác thực mã OTP đặt lại mật khẩu.
+  Future<void> verifyOtp(String email, String otp) async {
+    await _dio.post<dynamic>(
+      '/auth/verify-otp',
+      data: {'email': email, 'otp': otp},
+    );
+  }
+
+  /// Đặt lại mật khẩu mới dùng OTP.
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    await _dio.post<dynamic>(
+      '/auth/reset-password',
+      data: {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
   // ── Get Profile ──────────────────────────────────────────────────────────────
 
   /// Lấy thông tin người dùng hiện tại từ token đã lưu.
