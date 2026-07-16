@@ -146,6 +146,7 @@ class _FormView extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => onSubmit(),
+              isRequired: true,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter your email';

@@ -347,6 +347,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: _nameController,
                 label: 'Full Name',
                 icon: Icons.person_outline,
+                isRequired: true,
                 validator: (v) => (v == null || v.trim().length < 2)
                     ? 'Name must be at least 2 characters'
                     : null,
@@ -523,6 +524,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
+    bool isRequired = false,
   }) {
     return TextFormField(
       controller: controller,
@@ -530,7 +532,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       validator: validator,
       style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
       decoration: InputDecoration(
-        labelText: label,
+        label: Text.rich(
+          TextSpan(
+            text: label,
+            children: [
+              if (isRequired)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+            ],
+          ),
+        ),
         prefixIcon: Icon(icon, size: 20, color: AppColors.textSecondary),
         filled: true,
         fillColor: AppColors.surface,

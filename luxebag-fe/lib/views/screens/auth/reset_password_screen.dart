@@ -183,6 +183,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   obscureText: _obscurePassword,
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.next,
+                  isRequired: true,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -210,6 +211,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleResetPassword(),
+                  isRequired: true,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
@@ -219,7 +221,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Vui lòng xác nhận mật khẩu mới';
                     }
                     if (value != _passwordController.text) {

@@ -165,22 +165,35 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildTextField(_titleController, 'Tên sản phẩm (*)', true),
-                    _buildTextField(_modelNumberController, 'Model Number (*)', true),
-                    _buildTextField(_skuController, 'SKU (*)', true),
-                    _buildTextField(_descriptionController, 'Mô tả (*)', true, maxLines: 3),
+                    _buildTextField(_titleController, 'Tên sản phẩm', true),
+                    _buildTextField(_modelNumberController, 'Model Number', true),
+                    _buildTextField(_skuController, 'SKU', true),
+                    _buildTextField(_descriptionController, 'Mô tả', true, maxLines: 3),
                     Row(
                       children: [
-                        Expanded(child: _buildTextField(_retailPriceController, 'Giá gốc (*)', true, isNumber: true)),
+                        Expanded(child: _buildTextField(_retailPriceController, 'Giá gốc', true, isNumber: true)),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildTextField(_currentPriceController, 'Giá bán (*)', true, isNumber: true)),
+                        Expanded(child: _buildTextField(_currentPriceController, 'Giá bán', true, isNumber: true)),
                       ],
                     ),
-                    _buildTextField(_materialController, 'Chất liệu (*)', true),
-                    _buildTextField(_departmentController, 'Phòng ban / Danh mục lớn (*)', true),
+                    _buildTextField(_materialController, 'Chất liệu', true),
+                    _buildTextField(_departmentController, 'Phòng ban / Danh mục lớn', true),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Danh mục (*)', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        label: Text.rich(
+                          TextSpan(
+                            text: 'Danh mục',
+                            children: [
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                        border: OutlineInputBorder(),
+                      ),
                       value: categories.any((c) => c.id == _selectedCategoryId) ? _selectedCategoryId : null,
                       items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                       onChanged: (val) {
@@ -251,7 +264,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         maxLines: maxLines,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         decoration: InputDecoration(
-          labelText: label,
+          label: Text.rich(
+            TextSpan(
+              text: label,
+              children: [
+                if (isRequired)
+                  const TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
+          ),
           border: const OutlineInputBorder(),
         ),
         validator: (value) {

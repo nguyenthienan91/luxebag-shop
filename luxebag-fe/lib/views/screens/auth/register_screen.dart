@@ -124,6 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _nameController,
                   keyboardType: TextInputType.name,
                   textInputAction: TextInputAction.next,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your full name';
@@ -142,6 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
@@ -163,6 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
+                  isRequired: true,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -193,6 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscureConfirmPassword,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleRegister(),
+                  isRequired: true,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
