@@ -52,10 +52,9 @@ export class AuthService {
     const existing = await this.usersService.getUser({ email })
     if (existing) throw new BadRequestException('User already exist!')
 
-    const passwordHashed = await this.stringUtilService.hash(password)
     const userCreated = await this.usersService.createUser({
       email,
-      password: passwordHashed,
+      password,
       ...otherInfo,
     })
     // await this.walletsService.createWallet(userCreated._id)
