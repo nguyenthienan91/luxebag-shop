@@ -6,7 +6,7 @@ import type { Response } from 'express'
 import ms from 'ms'
 import { ZodResponse } from 'nestjs-zod'
 import { TokenKeys } from './consts/jwt.const'
-import { ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto'
+import { ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, VerifyOtpDto } from './dto/password.dto'
 import { AuthGuard } from './auth.guard'
 import { COOKIE_CONFIG_DEFAULT, CookiesToken } from '../../../common/decorators/cookie/cookie.const'
 import { Cookies } from '../../../common/decorators/cookie/cookie.decorator'
@@ -93,10 +93,16 @@ export class AuthController {
     return await this.authService.forgotPassword(forgotPasswordDto)
   }
 
+  @Post('verify-otp')
+  @SkipAuth()
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.authService.verifyOtp(verifyOtpDto)
+  }
+
   @Post('reset-password')
   @SkipAuth()
-  async resetPassword(@Query('token') token: string, @Body() resetPasswordDto: ResetPasswordDto) {
-    return await this.authService.resetPassword(token, resetPasswordDto)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(resetPasswordDto)
   }
 
   @Post('change-password')

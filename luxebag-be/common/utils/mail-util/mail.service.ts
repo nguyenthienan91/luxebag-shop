@@ -93,4 +93,65 @@ export class MailService {
       throw error
     }
   }
+
+  async sendResetPasswordOtpEmail(email: string, otp: string) {
+    try {
+      await this.resend.emails.send({
+        from: 'LuxeBag <no-reply@thienantech.pro.vn>',
+        to: email,
+        subject: 'Mã xác thực khôi phục mật khẩu - LuxeBag',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="UTF-8"></head>
+          <body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,sans-serif;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8;padding:40px 0;">
+              <tr><td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;max-width:600px;">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background-color:#4f46e5;padding:24px 32px;text-align:center;">
+                      <h1 style="margin:0;color:#ffffff;font-size:22px;letter-spacing:0.5px;">LuxeBag</h1>
+                      <p style="margin:6px 0 0;color:#c7d2fe;font-size:13px;">Xác thực tài khoản của bạn</p>
+                    </td>
+                  </tr>
+                  <!-- Body -->
+                  <tr>
+                    <td style="padding:32px;color:#333333;line-height:1.7;">
+                      <h2 style="margin-top:0;color:#1e1b4b;font-size:18px;">Mã xác thực (OTP) khôi phục mật khẩu</h2>
+                      <p style="margin:12px 0;font-size:15px;">Xin chào,</p>
+                      <p style="margin:12px 0;font-size:15px;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản LuxeBag của bạn. Vui lòng nhập mã OTP sau trên ứng dụng để tiếp tục:</p>
+                      <!-- OTP Box -->
+                      <div style="margin: 28px 0; text-align: center;">
+                        <span style="display:inline-block;padding:12px 36px;background-color:#f3f4f6;color:#1f2937;font-size:32px;font-weight:bold;letter-spacing:6px;border-radius:8px;border:1px solid #e5e7eb;">
+                          ${otp}
+                        </span>
+                      </div>
+                      <!-- Note -->
+                      <div style="background-color:#fef9c3;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:4px;font-size:13px;color:#78350f;">
+                        &#9200; Mã OTP này chỉ có hiệu lực trong <strong>15 phút</strong>. Tuyệt đối không chia sẻ mã này với bất kỳ ai.
+                      </div>
+                      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+                      <p style="font-size:13px;color:#9ca3af;margin:0;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này. Mật khẩu của bạn sẽ không thay đổi.</p>
+                    </td>
+                  </tr>
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color:#f9fafb;padding:20px 32px;text-align:center;font-size:12px;color:#9ca3af;border-top:1px solid #e5e7eb;">
+                      <p style="margin:0 0 4px;">&copy; ${new Date().getFullYear()} LuxeBag. Mọi quyền được bảo lưu.</p>
+                      <p style="margin:0;">Email này được gửi tự động, vui lòng không trả lời.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+          </html>
+        `,
+      })
+    } catch (error) {
+      console.error('Lỗi gửi mail OTP:', error)
+      throw error
+    }
+  }
 }
