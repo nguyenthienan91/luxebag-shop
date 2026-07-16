@@ -84,7 +84,7 @@ class MainScreenState extends State<MainScreen> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () => setState(() => _currentIndex = 2),
+                onTap: () => switchTab(2),
                 child: Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
