@@ -18,6 +18,8 @@ export const UserSchema = z.object({
   resetPasswordToken: z.string().nullable().optional(),
   resetPasswordOtp: z.string().nullable().optional(),
   resetPasswordExpiresAt: z.string().datetime({ offset: true }).nullable().optional(),
+  verificationOtp: z.string().nullable().optional(),
+  verificationOtpExpiresAt: z.string().datetime({ offset: true }).nullable().optional(),
   _destroy: z.boolean().optional(),
 })
 

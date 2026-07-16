@@ -93,10 +93,20 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                       // Name
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Họ và tên',
+                        decoration: InputDecoration(
+                          label: const Text.rich(
+                            TextSpan(
+                              text: 'Họ và tên',
+                              children: [
+                                TextSpan(
+                                  text: ' *',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
                           hintText: 'Nhập tên hiển thị',
-                          prefixIcon: Icon(Icons.person_outline),
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
                       ),
@@ -104,10 +114,20 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                       // Email
                       TextFormField(
                         controller: emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
+                        decoration: InputDecoration(
+                          label: const Text.rich(
+                            TextSpan(
+                              text: 'Email',
+                              children: [
+                                TextSpan(
+                                  text: ' *',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
                           hintText: 'example@gmail.com',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Vui lòng nhập email';
@@ -143,7 +163,18 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                         controller: passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
-                          labelText: isEdit ? 'Mật khẩu mới (Bỏ trống nếu giữ nguyên)' : 'Mật khẩu',
+                          label: Text.rich(
+                            TextSpan(
+                              text: isEdit ? 'Mật khẩu mới (Bỏ trống nếu giữ nguyên)' : 'Mật khẩu',
+                              children: [
+                                if (!isEdit)
+                                  const TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                              ],
+                            ),
+                          ),
                           hintText: isEdit ? 'Đổi mật khẩu' : 'Nhập mật khẩu (tối thiểu 6 ký tự)',
                           prefixIcon: const Icon(Icons.lock_outline),
                         ),
