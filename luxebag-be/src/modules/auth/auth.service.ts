@@ -12,7 +12,7 @@ import { randomUUID } from 'crypto'
 import { StringUtilService } from '../../../common/utils/string-util/string-util.service'
 import { MailService } from '../../../common/utils/mail-util/mail.service'
 import { SignInDto, SignUpDto } from './dto/sign.dto'
-import { ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto'
+import { ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, VerifyOtpDto } from './dto/password.dto'
 import { WithUser } from '../../../common/decorators/user.decorator'
 import { OAuth2Client } from 'google-auth-library'
 
@@ -99,20 +99,20 @@ export class AuthService {
 
     const userEmail = user.email
     if (userEmail) {
-      // 1. Tạo Token và thời gian hết hạn (15 phút)
-      const token = randomUUID()
+      // 1. Tạo OTP (6 chữ số) và thời gian hết hạn (15 phút)
+      const otp = Math.floor(100000 + Math.random() * 900000).toString()
       const expires = new Date(Date.now() + 15 * 60 * 1000)
 
-      // 2. Lưu vào database (Sử dụng các trường đã thêm vào Schema trước đó)
+      // 2. Lưu vào database
       await this.usersService.update(user.id, {
-        resetPasswordToken: token,
+        resetPasswordOtp: otp,
         resetPasswordExpiresAt: expires.toISOString(),
       })
 
-      // 3. Gửi mail qua Resend
+      // 3. Gửi mail OTP qua Resend
       try {
-        await this.mailService.sendResetPasswordEmail(user.email, token)
-        return { message: 'Vui lòng kiểm tra email của bạn' }
+        await this.mailService.sendResetPasswordOtpEmail(user.email, otp)
+        return { message: 'Vui lòng kiểm tra email của bạn để nhận mã OTP' }
       } catch (error) {
         throw new InternalServerErrorException('Lỗi khi gửi email')
       }
@@ -121,19 +121,36 @@ export class AuthService {
     }
   }
 
-  async resetPassword(token: string, dto: ResetPasswordDto) {
-    const { newPassword } = dto
+  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
+    const { email, otp } = verifyOtpDto
+    const user = await this.usersService.getUser({ email })
 
-    const user = await this.usersService.getUser({ resetPasswordToken: token })
-    if (!user) throw new BadRequestException('Invalid or expired token')
+    if (!user) throw new BadRequestException('Không tìm thấy người dùng')
+    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
+      throw new BadRequestException('Mã OTP không chính xác')
+    }
 
     const isExpired = !user.resetPasswordExpiresAt || new Date(user.resetPasswordExpiresAt) < new Date()
-    if (isExpired) throw new BadRequestException('Token has expired')
+    if (isExpired) throw new BadRequestException('Mã OTP đã hết hạn')
 
-    const passwordHashed = await this.stringUtilService.hash(newPassword)
+    return { message: 'Xác thực OTP thành công' }
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const { email, otp, newPassword } = dto
+
+    const user = await this.usersService.getUser({ email })
+    if (!user) throw new BadRequestException('Không tìm thấy người dùng')
+    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
+      throw new BadRequestException('Mã OTP không chính xác')
+    }
+
+    const isExpired = !user.resetPasswordExpiresAt || new Date(user.resetPasswordExpiresAt) < new Date()
+    if (isExpired) throw new BadRequestException('Mã OTP đã hết hạn')
+
     await this.usersService.update(user.id, {
-      password: passwordHashed,
-      resetPasswordToken: null,
+      password: newPassword,
+      resetPasswordOtp: null,
       resetPasswordExpiresAt: null,
     })
 
@@ -149,8 +166,7 @@ export class AuthService {
     const isMatch = await this.stringUtilService.compare(oldPassword, existingUser.password)
     if (!isMatch) throw new BadRequestException('Old password is incorrect')
 
-    const passwordHashed = await this.stringUtilService.hash(newPassword)
-    await this.usersService.updateById(user.userID, { password: passwordHashed })
+    await this.usersService.updateById(user.userID, { password: newPassword })
     return { message: 'Password have changed successfully.' }
   }
 
@@ -184,11 +200,10 @@ export class AuthService {
     if (!user) {
       // Create user if not exists
       const randomPassword = randomUUID()
-      const passwordHashed = await this.stringUtilService.hash(randomPassword)
 
       user = await this.usersService.createUser({
         email,
-        password: passwordHashed,
+        password: randomPassword,
         displayName: name || email.split('@')[0],
         avatar: picture || null,
         role: 'customer' as any, // Default to customer

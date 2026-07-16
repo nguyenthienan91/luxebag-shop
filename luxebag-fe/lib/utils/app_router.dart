@@ -6,6 +6,8 @@ import '../viewmodels/auth_viewmodel.dart';
 import '../views/screens/auth/login_screen.dart';
 import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/forgot_password_screen.dart';
+import '../views/screens/auth/otp_verification_screen.dart';
+import '../views/screens/auth/reset_password_screen.dart';
 import '../views/screens/main/main_screen.dart';
 import '../views/screens/admin/admin_main_screen.dart';
 import '../views/screens/product/product_detail_screen.dart';
@@ -46,6 +48,23 @@ final GoRouter appRouter = GoRouter(
       path: '/forgot-password',
       name: 'forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/otp-verification',
+      name: 'otp-verification',
+      builder: (context, state) {
+        final email = state.uri.queryParameters['email'] ?? '';
+        return OtpVerificationScreen(email: email);
+      },
+    ),
+    GoRoute(
+      path: '/reset-password',
+      name: 'reset-password',
+      builder: (context, state) {
+        final email = state.uri.queryParameters['email'] ?? '';
+        final otp = state.uri.queryParameters['otp'] ?? '';
+        return ResetPasswordScreen(email: email, otp: otp);
+      },
     ),
     GoRoute(
       path: '/home',

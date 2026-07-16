@@ -16,7 +16,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _emailSent = false;
 
   @override
   void dispose() {
@@ -28,11 +27,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authVM = context.read<AuthViewModel>();
-    final success = await authVM.forgotPassword(_emailController.text.trim());
+    final email = _emailController.text.trim();
+    final success = await authVM.forgotPassword(email);
 
     if (!mounted) return;
     if (success) {
-      setState(() => _emailSent = true);
+      context.push('/otp-verification?email=${Uri.encodeComponent(email)}');
     } else if (authVM.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -65,17 +65,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         title: const Text('Forgot Password'),
       ),
       body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _emailSent
-              ? _SuccessView(email: _emailController.text.trim())
-              : _FormView(
-                  key: const ValueKey('form'),
-                  formKey: _formKey,
-                  emailController: _emailController,
-                  isLoading: authVM.isLoading,
-                  onSubmit: _handleForgotPassword,
-                ),
+        child: _FormView(
+          key: const ValueKey('form'),
+          formKey: _formKey,
+          emailController: _emailController,
+          isLoading: authVM.isLoading,
+          onSubmit: _handleForgotPassword,
         ),
       ),
     );
@@ -171,78 +166,6 @@ class _FormView extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── Success View ───────────────────────────────────────────────────────────
-
-class _SuccessView extends StatelessWidget {
-  final String email;
-
-  const _SuccessView({required this.email});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Success icon
-          Center(
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.mark_email_read_outlined,
-                size: 34,
-                color: AppColors.success,
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          const Text(
-            'Check your email',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "We've sent a password reset link to\n$email",
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: 36),
-
-          CustomButton(
-            text: 'Back to Sign In',
-            onPressed: () => context.go('/login'),
-          ),
-          const SizedBox(height: 16),
-
-          Center(
-            child: TextButton(
-              onPressed: () {},
-              child: const Text(
-                "Didn't receive the email? Resend",
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
