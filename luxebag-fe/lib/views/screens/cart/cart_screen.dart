@@ -470,12 +470,8 @@ class _OrderSummary extends StatelessWidget {
           const SizedBox(height: 8),
           _SummaryRow(
             label: 'Shipping',
-            value: cart.shippingFee == 0
-                ? 'FREE'
-                : '\$${cart.shippingFee.toStringAsFixed(2)}',
-            valueColor: cart.shippingFee == 0
-                ? AppColors.success
-                : AppColors.textPrimary,
+            value: 'Calculated at checkout',
+            valueColor: AppColors.textHint,
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
@@ -486,16 +482,6 @@ class _OrderSummary extends StatelessWidget {
             value: '\$${cart.total.toStringAsFixed(2)}',
             isBold: true,
           ),
-          if (cart.shippingFee > 0) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Add \$${(500 - cart.subtotal).toStringAsFixed(2)} more for free shipping',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
         ],
       ),
     );

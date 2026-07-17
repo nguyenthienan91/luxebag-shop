@@ -25,12 +25,18 @@ export class OrderController {
   @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
   @ApiQuery({ name: 'paymentMethod', required: false, enum: PaymentMethod })
   @ApiQuery({ name: 'userId', required: false, type: String })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
+  @ApiQuery({ name: 'endDate', required: false, type: String })
   async findAll(
     @Query('page') page?: string,
     @Query('itemPerPage') itemPerPage?: string,
     @Query('status') status?: OrderStatus,
     @Query('paymentMethod') paymentMethod?: PaymentMethod,
     @Query('userId') userId?: string,
+    @Query('search') search?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return okResponse(
       await this.orderService.findAll(
@@ -39,6 +45,9 @@ export class OrderController {
         status,
         paymentMethod,
         userId,
+        search,
+        startDate,
+        endDate,
       ),
     )
   }

@@ -102,7 +102,8 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Consumer<ChatViewModel>(
           builder: (context, vm, _) {
             final authVM = context.read<AuthViewModel>();
-            final isAdmin = authVM.currentUser?.role == 'admin';
+            final role = authVM.currentUser?.role;
+            final isAdmin = role == 'admin' || role == 'staff';
 
             final isOnline = vm.isShopOnline;
             
@@ -207,7 +208,8 @@ class _ChatScreenState extends State<ChatScreen> {
           Consumer<ChatViewModel>(
             builder: (context, vm, _) {
               final authVM = context.read<AuthViewModel>();
-              final isAdmin = authVM.currentUser?.role == 'admin';
+              final role = authVM.currentUser?.role;
+              final isAdmin = role == 'admin' || role == 'staff';
               
               if (isAdmin || vm.shopAdmins.length <= 1) {
                 return const SizedBox.shrink();
