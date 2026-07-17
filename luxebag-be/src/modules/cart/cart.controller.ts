@@ -31,4 +31,10 @@ export class CartController {
   async removeItem(@Param('productId') productId: string, @User() user: UserInfo) {
     return okResponse(await this.cartService.removeItem(user.userID, productId))
   }
+
+  // DELETE /cart/clear
+  @Delete('clear')
+  async clearCart(@User() user: UserInfo) {
+    return okResponse(await this.cartService.clearCart(user.userID))
+  }
 }

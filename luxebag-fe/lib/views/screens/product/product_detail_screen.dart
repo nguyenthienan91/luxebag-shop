@@ -6,7 +6,7 @@ import '../../../models/product_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/product_viewmodel.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
-
+import '../../../viewmodels/inventory_viewmodel.dart';
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
 
@@ -29,6 +29,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         .products
         .where((p) => p.id == widget.productId)
         .firstOrNull;
+        
+    if (_product != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<InventoryViewModel>().fetchInventoryForProducts([_product!]);
+      });
+    }
   }
 
   @override
@@ -645,13 +651,31 @@ class _BottomBar extends StatelessWidget {
             child: ElevatedButton(
               onPressed: product.inStock
                   ? () async {
-                      final success = await context.read<CartViewModel>().addToCart(product.id, 1);
+                      final invVM = context.read<InventoryViewModel>();
+                      final stock = invVM.getInventoryForProduct(product.id)?.stock ?? 0;
+                      
+                      final cartVM = context.read<CartViewModel>();
+                      final itemInCart = cartVM.items.where((i) => i.productId == product.id).firstOrNull;
+                      final currentQty = itemInCart?.quantity ?? 0;
+                      
+                      if (currentQty + 1 > stock) {
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Not enough stock available (only $stock left).'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                        return;
+                      }
+
+                      final success = await cartVM.addToCart(product.id, 1);
                       if (!context.mounted) return;
                       
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('Added to bag!'),
+                          content: const Text('Added to cart!'),
                           backgroundColor: AppColors.primary,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(

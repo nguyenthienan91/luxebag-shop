@@ -285,10 +285,16 @@ class _StaffProductManagementScreenState extends State<StaffProductManagementScr
             );
           }
           if (vm.products.isEmpty) return const _EmptyView();
-          return _ProductGrid(
-            vm: vm,
-            scrollController: _scrollController,
-            onDelete: (product) => _deleteProduct(context, product),
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              await vm.loadInitial();
+            },
+            child: _ProductGrid(
+              vm: vm,
+              scrollController: _scrollController,
+              onDelete: (product) => _deleteProduct(context, product),
+            ),
           );
         },
       ),
@@ -420,6 +426,7 @@ class _ProductGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

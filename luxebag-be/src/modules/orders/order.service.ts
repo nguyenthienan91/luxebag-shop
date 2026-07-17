@@ -101,8 +101,17 @@ export class OrderService {
         quantity: number
       }[] = []
 
-      // 2. Vòng lặp kiểm tra kho và build snapshot
-      for (const item of cart.items) {
+      // 2. Filter selected items or use all
+      const itemsToProcess = dto.selectedProductIds && dto.selectedProductIds.length > 0
+        ? cart.items.filter(item => dto.selectedProductIds!.includes(item.productId._id.toString()))
+        : cart.items
+
+      if (itemsToProcess.length === 0) {
+        throw new BadRequestException('No items selected for checkout')
+      }
+
+      // 3. Vòng lặp kiểm tra kho và build snapshot
+      for (const item of itemsToProcess) {
         const product = item.productId
         if (!product || !product._id) {
           throw new BadRequestException('One or more products in cart no longer exist')
@@ -167,8 +176,9 @@ export class OrderService {
         { session },
       )
 
-      // 4. Xóa sạch giỏ hàng
-      await this.cartModel.findOneAndUpdate({ userId: userObjectId }, { items: [] }, { session }).exec()
+      // 4. Xóa các sản phẩm đã thanh toán khỏi giỏ hàng
+      const remainingItems = cart.items.filter(item => !itemsToProcess.includes(item))
+      await this.cartModel.findOneAndUpdate({ userId: userObjectId }, { items: remainingItems.map(i => ({ productId: i.productId._id, quantity: i.quantity })) }, { session }).exec()
 
       await session.commitTransaction()
 

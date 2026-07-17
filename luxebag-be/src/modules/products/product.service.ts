@@ -51,6 +51,7 @@ export class ProductService {
     const list = await this.productModel
       .find(filter)
       .populate('categoryId')
+      .sort({ createdAt: -1 })
       .skip(pagination.skip)
       .limit(itemPerPage)
       .exec()

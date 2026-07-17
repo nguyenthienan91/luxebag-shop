@@ -34,6 +34,7 @@ class ProductViewModel extends ChangeNotifier {
   // ── Pagination ────────────────────────────────────────────────────────────
   int _totalPages = 1;
   int _totalItems = 0;
+  int _currentPage = 1;
   static const int _pageSize = 20;
 
   // ── Loading / Error ───────────────────────────────────────────────────────
@@ -157,6 +158,7 @@ class ProductViewModel extends ChangeNotifier {
       _products = result.products;
       _totalPages = result.totalPages;
       _totalItems = result.totalItems;
+      _currentPage = 1;
       _errorMessage = null;
     } catch (e) {
       _errorMessage = _parseError(e);
@@ -178,19 +180,20 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final currentPage = (_products.length / _pageSize).ceil() + 1;
+      final nextPage = _currentPage + 1;
       final result = await _repository.fetchProducts(
         search: _searchQuery.isEmpty ? null : _searchQuery,
         categoryId: _selectedCategoryId,
         minPrice: _minPrice,
         maxPrice: _maxPrice,
-        page: currentPage,
+        page: nextPage,
         limit: _pageSize,
       );
 
       _products = [..._products, ...result.products];
       _totalPages = result.totalPages;
       _totalItems = result.totalItems;
+      _currentPage = nextPage;
     } catch (_) {
       // Load more thất bại → giữ nguyên danh sách cũ, không hiển thị lỗi
     } finally {

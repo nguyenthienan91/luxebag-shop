@@ -209,6 +209,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                         ),
                       )
                     : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         itemCount: orders.length,
                         separatorBuilder: (_, __) =>

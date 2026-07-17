@@ -242,10 +242,15 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
             );
           }
 
-          return ListView.builder(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              _fetchOrders();
+            },
+            child: ListView.builder(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
             itemCount: vm.adminOrders.length + 1,
             itemBuilder: (context, index) {
               if (index == vm.adminOrders.length) {
@@ -281,9 +286,10 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
                     _updateStatus(context, order, nextStatus, actionName),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
+    ),
     );
   }
 }

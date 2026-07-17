@@ -45,13 +45,20 @@ class WishlistScreen extends StatelessWidget {
             return const _EmptyWishlist();
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: items.length,
-            separatorBuilder: (_, __) =>
-                const Divider(height: 1, color: AppColors.divider),
-            itemBuilder: (context, index) =>
-                _WishlistTile(product: items[index]),
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              await context.read<ProductViewModel>().fetchWishlist();
+            },
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: items.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, color: AppColors.divider),
+              itemBuilder: (context, index) =>
+                  _WishlistTile(product: items[index]),
+            ),
           );
         },
       ),
