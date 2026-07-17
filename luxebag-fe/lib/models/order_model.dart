@@ -72,6 +72,8 @@ class OrderModel {
   final String paymentMethod;
   final String? paymentStatus;
   final String shippingAddress;
+  final String province;
+  final double shippingFee;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? paymentUrl;
@@ -86,6 +88,8 @@ class OrderModel {
     required this.paymentMethod,
     this.paymentStatus,
     required this.shippingAddress,
+    required this.province,
+    required this.shippingFee,
     required this.createdAt,
     required this.updatedAt,
     this.paymentUrl,
@@ -105,6 +109,8 @@ class OrderModel {
       paymentMethod: json['paymentMethod'] as String? ?? 'COD',
       paymentStatus: json['paymentStatus'] as String?,
       shippingAddress: json['shippingAddress'] as String? ?? '',
+      province: json['province'] as String? ?? '',
+      shippingFee: (json['shippingFee'] as num?)?.toDouble() ?? 0.0,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
           : DateTime.now(),

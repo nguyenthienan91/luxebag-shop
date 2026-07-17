@@ -15,6 +15,10 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  DateTime? _startDate;
+  DateTime? _endDate;
+  String? _paymentMethod;
 
   final List<OrderStatus> _statuses = [
     OrderStatus.pending,
@@ -40,6 +44,7 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -64,9 +69,144 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
   }
 
   void _fetchOrders() {
-    context.read<OrderViewModel>().fetchAdminOrders(
-          status: _statuses[_tabController.index],
+    final vm = context.read<OrderViewModel>();
+    vm.setAdminFilters(
+      search: _searchController.text.trim().isNotEmpty ? _searchController.text.trim() : null,
+      startDate: _startDate,
+      endDate: _endDate,
+      paymentMethod: _paymentMethod == 'ALL' ? null : _paymentMethod,
+    );
+    vm.fetchAdminOrders(
+      status: _statuses[_tabController.index],
+    );
+  }
+
+  void _showDateRangePicker() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: _startDate != null && _endDate != null
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
         );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _startDate = picked.start;
+        _endDate = picked.end;
+      });
+      _fetchOrders();
+    }
+  }
+
+  void _clearDateRange() {
+    setState(() {
+      _startDate = null;
+      _endDate = null;
+    });
+    _fetchOrders();
+  }
+
+  Widget _buildFilters() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Tìm theo mã đơn...',
+                    hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 13),
+                    prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textHint),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onSubmitted: (_) => _fetchOrders(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _paymentMethod ?? 'ALL',
+                    items: const [
+                      DropdownMenuItem(value: 'ALL', child: Text('Tất cả PT', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(value: 'COD', child: Text('COD', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(value: 'VNPAY', child: Text('VNPAY', style: TextStyle(fontSize: 13))),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        _paymentMethod = val;
+                      });
+                      _fetchOrders();
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _showDateRangePicker,
+                  icon: const Icon(Icons.calendar_today, size: 16),
+                  label: Text(
+                    _startDate != null && _endDate != null
+                        ? '${_startDate!.day}/${_startDate!.month} - ${_endDate!.day}/${_endDate!.month}'
+                        : 'Lọc theo ngày',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.divider),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              if (_startDate != null)
+                IconButton(
+                  onPressed: _clearDateRange,
+                  icon: const Icon(Icons.clear, size: 20),
+                  color: AppColors.textSecondary,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   void _cancelOrder(BuildContext context, OrderModel order) {
@@ -198,8 +338,12 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
           ],
         ),
       ),
-      body: Consumer<OrderViewModel>(
-        builder: (context, vm, _) {
+      body: Column(
+        children: [
+          _buildFilters(),
+          Expanded(
+            child: Consumer<OrderViewModel>(
+              builder: (context, vm, _) {
           if (vm.isLoading) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -290,6 +434,9 @@ class _StaffOrderFulfillmentScreenState extends State<StaffOrderFulfillmentScree
         );
       },
     ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -389,7 +536,7 @@ class _OrderCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Địa chỉ: ${order.shippingAddress}',
+              'Địa chỉ: ${order.province.isNotEmpty ? '${order.shippingAddress}, ${order.province}' : order.shippingAddress}',
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
             const SizedBox(height: 12),
@@ -509,10 +656,21 @@ class _OrderCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Tổng cộng: \$${order.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Phí ship: ${order.shippingFee == 0 ? 'Miễn phí' : '\$${order.shippingFee.toStringAsFixed(2)}'}',
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Tổng cộng: \$${order.totalAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                    ),
+                  ],
                 ),
               ],
             ),

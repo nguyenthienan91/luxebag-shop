@@ -23,6 +23,12 @@ class OrderViewModel extends ChangeNotifier {
   int _adminCurrentPage = 1;
   bool _isAdminLoadingMore = false;
 
+  // Admin filters
+  String? _adminSearchQuery;
+  DateTime? _adminStartDate;
+  DateTime? _adminEndDate;
+  String? _adminPaymentMethod;
+
   List<OrderModel> get myOrders => List.unmodifiable(_myOrders);
   List<OrderModel> get adminOrders => List.unmodifiable(_adminOrders);
   RevenueStatsModel? get revenueStats => _revenueStats;
@@ -34,6 +40,24 @@ class OrderViewModel extends ChangeNotifier {
   int get adminCurrentPage => _adminCurrentPage;
   bool get isAdminLoadingMore => _isAdminLoadingMore;
   bool get adminHasMore => _adminOrders.length < _adminTotalItems;
+
+  String? get adminSearchQuery => _adminSearchQuery;
+  DateTime? get adminStartDate => _adminStartDate;
+  DateTime? get adminEndDate => _adminEndDate;
+  String? get adminPaymentMethod => _adminPaymentMethod;
+
+  void setAdminFilters({
+    String? search,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? paymentMethod,
+  }) {
+    _adminSearchQuery = search;
+    _adminStartDate = startDate;
+    _adminEndDate = endDate;
+    _adminPaymentMethod = paymentMethod;
+    notifyListeners();
+  }
 
   List<OrderModel> getByStatus(OrderStatus? status) {
     if (status == null) return myOrders;
@@ -101,6 +125,7 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> checkout(
+    String province,
     String address,
     String paymentMethod,
     CartViewModel cartViewModel,
@@ -112,6 +137,7 @@ class OrderViewModel extends ChangeNotifier {
 
     try {
       final result = await _repository.checkout(
+        province: province,
         shippingAddress: address,
         paymentMethod: paymentMethod,
         selectedProductIds: cartViewModel.selectedItems.toList(),
@@ -160,6 +186,10 @@ class OrderViewModel extends ChangeNotifier {
       final result = await _repository.fetchAdminOrders(
         page: page,
         status: statusStr,
+        search: _adminSearchQuery,
+        startDate: _adminStartDate?.toIso8601String(),
+        endDate: _adminEndDate?.toIso8601String(),
+        paymentMethod: _adminPaymentMethod,
       );
 
       if (isLoadMore) {

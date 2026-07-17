@@ -63,6 +63,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   findOne(@Param('id') id: string) {
     return this.usersService.findById(id)
   }

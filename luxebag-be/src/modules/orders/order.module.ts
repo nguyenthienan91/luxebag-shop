@@ -11,6 +11,8 @@ import { PaginationUtilModule } from '../../../common/utils/pagination-util/pagi
 import { NotificationsModule } from '../notifications/notifications.module'
 import { VnpayModule } from '../vnpay/vnpay.module'
 
+import { ShippingService } from './shipping.service'
+
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
@@ -22,7 +24,7 @@ import { VnpayModule } from '../vnpay/vnpay.module'
     VnpayModule,
   ],
   controllers: [OrderController, PaymentController],
-  providers: [OrderService],
+  providers: [OrderService, ShippingService],
   exports: [OrderService],
 })
 export class OrderModule {}

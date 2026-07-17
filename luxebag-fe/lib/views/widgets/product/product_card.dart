@@ -170,27 +170,6 @@ class ProductCard extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (product.shippingOptions.freeShipping)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.local_shipping_outlined,
-                            size: 11,
-                            color: AppColors.success,
-                          ),
-                          SizedBox(width: 3),
-                          Text(
-                            'Free shipping',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.success,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                 ],
               ),
             ),

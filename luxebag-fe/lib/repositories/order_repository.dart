@@ -30,6 +30,7 @@ class OrderRepository {
   }
 
   Future<Map<String, dynamic>?> checkout({
+    required String province,
     required String shippingAddress,
     required String paymentMethod,
     List<String>? selectedProductIds,
@@ -37,6 +38,7 @@ class OrderRepository {
     final response = await _apiService.dio.post<Map<String, dynamic>>(
       '/orders/checkout',
       data: {
+        'province': province,
         'shippingAddress': shippingAddress,
         'paymentMethod': paymentMethod,
         if (selectedProductIds != null) 'selectedProductIds': selectedProductIds,
@@ -63,6 +65,10 @@ class OrderRepository {
     int page = 1,
     int limit = 10,
     String? status,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? paymentMethod,
   }) async {
     final Map<String, dynamic> queryParams = {
       'page': page,
@@ -70,6 +76,18 @@ class OrderRepository {
     };
     if (status != null && status.isNotEmpty) {
       queryParams['status'] = status;
+    }
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
+    }
+    if (startDate != null && startDate.isNotEmpty) {
+      queryParams['startDate'] = startDate;
+    }
+    if (endDate != null && endDate.isNotEmpty) {
+      queryParams['endDate'] = endDate;
+    }
+    if (paymentMethod != null && paymentMethod.isNotEmpty) {
+      queryParams['paymentMethod'] = paymentMethod;
     }
 
     final response = await _apiService.dio.get<Map<String, dynamic>>(
