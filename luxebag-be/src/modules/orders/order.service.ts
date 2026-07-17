@@ -13,6 +13,7 @@ import { PaginationUtilService } from '../../../common/utils/pagination-util/pag
 import { RevenueStatsDto } from './dto/revenue-stats.dto'
 import { NotificationsService } from '../notifications/notifications.service'
 import { VnpayService } from '../vnpay/vnpay.service'
+import { ShippingService } from './shipping.service'
 
 @Injectable()
 export class OrderService {
@@ -25,6 +26,7 @@ export class OrderService {
     private readonly paginationUtil: PaginationUtilService,
     private readonly notificationsService: NotificationsService,
     private readonly vnpayService: VnpayService,
+    private readonly shippingService: ShippingService,
   ) {}
 
   // [ADMIN] GET /orders/admin — lấy tất cả đơn hàng, có phân trang + lọc
@@ -34,11 +36,36 @@ export class OrderService {
     status?: OrderStatus,
     paymentMethod?: PaymentMethod,
     userId?: string,
+    search?: string,
+    startDate?: string,
+    endDate?: string,
   ) {
     const filter: Record<string, any> = {}
     if (status) filter.status = status
     if (paymentMethod) filter.paymentMethod = paymentMethod
     if (userId) filter.userId = new Types.ObjectId(userId)
+
+    if (search) {
+      filter.$expr = {
+        $regexMatch: {
+          input: { $toString: '$_id' },
+          regex: search,
+          options: 'i',
+        },
+      }
+    }
+
+    if (startDate || endDate) {
+      filter.createdAt = {}
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate)
+      }
+      if (endDate) {
+        const end = new Date(endDate)
+        end.setHours(23, 59, 59, 999)
+        filter.createdAt.$lte = end
+      }
+    }
 
     const totalItems = await this.orderModel.countDocuments(filter)
     const pagination = this.paginationUtil.paging({ page, itemPerPage, totalItems })
@@ -100,6 +127,7 @@ export class OrderService {
         priceAtPurchase: number
         quantity: number
       }[] = []
+      const shippingItemsInfo: { quantity: number; sizeCategory: string }[] = []
 
       // 2. Filter selected items or use all
       const itemsToProcess = dto.selectedProductIds && dto.selectedProductIds.length > 0
@@ -149,6 +177,12 @@ export class OrderService {
         const itemTotal = priceAtPurchase * item.quantity
         totalAmount += itemTotal
 
+        // Thu thập thông tin cho shipping
+        shippingItemsInfo.push({
+          quantity: item.quantity,
+          sizeCategory: product.sizeCategory,
+        })
+
         // Build product snapshot
         orderItems.push({
           productId: product._id,
@@ -160,6 +194,10 @@ export class OrderService {
         })
       }
 
+      // Tính phí vận chuyển
+      const shippingFee = this.shippingService.calculateShippingFee(dto.province, shippingItemsInfo)
+      totalAmount += shippingFee
+
       // 3. Tạo đơn hàng
       const [order] = await this.orderModel.create(
         [
@@ -167,7 +205,9 @@ export class OrderService {
             userId: userObjectId,
             items: orderItems,
             totalAmount,
+            province: dto.province,
             shippingAddress: dto.shippingAddress,
+            shippingFee,
             paymentMethod: dto.paymentMethod,
             paymentStatus: PaymentStatus.UNPAID,
             status: OrderStatus.PENDING,
@@ -187,7 +227,7 @@ export class OrderService {
         await this.notificationsService.createNotification(
           userId,
           'Đặt đơn hàng thành công! 🛒',
-          `Đơn hàng #${order._id} của bạn đã được đặt thành công và đang chờ xử lý.`,
+          `Đơn hàng #${order._id.toString().slice(-8).toUpperCase()} của bạn đã được đặt thành công và đang chờ xử lý.`,
           'order',
           'Order',
           order._id.toString(),
@@ -239,7 +279,12 @@ export class OrderService {
     }
 
     // 3. Cập nhật status và lưu
-    if (dto.status) order.status = dto.status
+    if (dto.status) {
+      order.status = dto.status
+      if (dto.status === OrderStatus.COMPLETED && order.paymentMethod === PaymentMethod.COD) {
+        order.paymentStatus = PaymentStatus.PAID
+      }
+    }
     if (dto.paymentStatus) order.paymentStatus = dto.paymentStatus
     await order.save()
 
@@ -250,16 +295,16 @@ export class OrderService {
 
       if (dto.status === OrderStatus.SHIPPED) {
         title = 'Đơn hàng đang giao 🚚'
-        body = `Đơn hàng #${order._id} của bạn đang trên đường giao.`
+        body = `Đơn hàng #${order._id.toString().slice(-8).toUpperCase()} của bạn đang trên đường giao.`
       } else if (dto.status === OrderStatus.COMPLETED) {
         title = 'Đơn hàng hoàn thành ✅'
-        body = `Đơn hàng #${order._id} đã được giao thành công. Cảm ơn bạn đã mua sắm!`
+        body = `Đơn hàng #${order._id.toString().slice(-8).toUpperCase()} đã được giao thành công. Cảm ơn bạn đã mua sắm!`
       } else if (dto.status === OrderStatus.CANCELLED) {
         title = 'Đơn hàng đã hủy ❌'
-        body = `Đơn hàng #${order._id} của bạn đã bị hủy.`
+        body = `Đơn hàng #${order._id.toString().slice(-8).toUpperCase()} của bạn đã bị hủy.`
       } else if (dto.status === OrderStatus.PROCESSING) {
         title = 'Đơn hàng đang xử lý ⚙️'
-        body = `Đơn hàng #${order._id} của bạn đang được xử lý.`
+        body = `Đơn hàng #${order._id.toString().slice(-8).toUpperCase()} của bạn đang được xử lý.`
       }
 
       if (title && body) {
@@ -316,7 +361,7 @@ export class OrderService {
       await this.notificationsService.createNotification(
         order.userId,
         'Đơn hàng đã hủy ❌',
-        `Đơn hàng #${order._id} của bạn đã được hủy thành công.`,
+        `Đơn hàng #${order._id.toString().slice(-8).toUpperCase()} của bạn đã được hủy thành công.`,
         'order',
         'Order',
         order._id.toString(),

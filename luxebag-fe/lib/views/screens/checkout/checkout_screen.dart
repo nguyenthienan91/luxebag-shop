@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
 import '../../../viewmodels/order_viewmodel.dart';
+import '../../../viewmodels/notification_viewmodel.dart';
 import 'vnpay_webview_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -20,6 +21,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  String? _selectedProvince;
+  double _shippingFee = 0.0;
+
+  final List<String> _provinces = [
+    'Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Bình Dương', 'Đồng Nai', 'Cần Thơ', 'Khác (Liên Miền)'
+  ];
+
+  final List<String> _southernProvinces = [
+    'Bình Phước', 'Bình Dương', 'Đồng Nai', 'Tây Ninh', 'Bà Rịa - Vũng Tàu',
+    'Long An', 'Đồng Tháp', 'Tiền Giang', 'An Giang', 'Bến Tre', 'Vĩnh Long',
+    'Trà Vinh', 'Hậu Giang', 'Kiên Giang', 'Sóc Trăng', 'Bạc Liêu', 'Cà Mau', 'Cần Thơ'
+  ];
+
+  void _calculateShippingFee() {
+    if (!mounted) return;
+    final cart = context.read<CartViewModel>();
+    
+    if (_selectedProvince == null) {
+      setState(() => _shippingFee = 0.0);
+      return;
+    }
+
+    double totalWeight = 0;
+    for (var item in cart.items) {
+      if (cart.selectedItems.contains(item.productId)) {
+        double weight = 0.5;
+        switch (item.product.sizeCategory) {
+          case 'Mini': weight = 0.4; break;
+          case 'Small': weight = 0.6; break;
+          case 'Medium': weight = 1.0; break;
+          case 'Large': weight = 1.5; break;
+        }
+        totalWeight += weight * item.quantity;
+      }
+    }
+
+    if (totalWeight <= 0) {
+      setState(() => _shippingFee = 0.0);
+      return;
+    }
+
+    double feeVnd = 0;
+    if (_selectedProvince == 'Hồ Chí Minh') {
+      feeVnd = 30000;
+      if (totalWeight > 3) feeVnd += ((totalWeight - 3) / 0.5).ceil() * 2500;
+    } else if (['Hà Nội', 'Đà Nẵng'].contains(_selectedProvince)) {
+      feeVnd = 40000;
+      if (totalWeight > 0.5) feeVnd += ((totalWeight - 0.5) / 0.5).ceil() * 5000;
+    } else if (_southernProvinces.contains(_selectedProvince)) {
+      feeVnd = 35000;
+      if (totalWeight > 0.5) feeVnd += ((totalWeight - 0.5) / 0.5).ceil() * 2500;
+    } else {
+      feeVnd = 40000;
+      if (totalWeight > 0.5) feeVnd += ((totalWeight - 0.5) / 0.5).ceil() * 5000;
+    }
+
+    setState(() {
+      _shippingFee = double.parse((feeVnd / 26267.54).toStringAsFixed(2));
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _calculateShippingFee();
+    });
+  }
 
   // Payment method
   String _paymentMethod = 'cod';
@@ -49,6 +118,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         : 'COD';
 
     final result = await orderVM.checkout(
+      _selectedProvince ?? '',
       _addressController.text.trim(),
       backendPaymentMethod,
       cartVM,
@@ -78,6 +148,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           if (responseCode == '00') {
             // Thanh toán thành công -> Điều hướng qua màn hình PaymentSuccess
+            context.read<NotificationViewModel>().loadNotifications(refresh: true);
             context.go('/payment-success?orderId=$txnRef');
           } else {
             // Thanh toán thất bại -> Điều hướng qua màn hình PaymentFailed
@@ -89,6 +160,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       } else {
         // Đối với COD, hiển thị dialog thành công như bình thường
+        context.read<NotificationViewModel>().loadNotifications(refresh: true);
         _showSuccessDialog();
       }
     } else {
@@ -251,6 +323,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 12),
 
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Province/City',
+                hintText: 'Select your province',
+                prefixIcon: const Icon(Icons.location_city_outlined, color: AppColors.textHint, size: 20),
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              value: _selectedProvince,
+              items: _provinces.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+              onChanged: (value) {
+                setState(() => _selectedProvince = value);
+                _calculateShippingFee();
+              },
+              validator: (v) => v == null ? 'Please select your province' : null,
+            ),
+            const SizedBox(height: 12),
+
             _buildTextField(
               controller: _addressController,
               label: 'Street Address',
@@ -345,19 +440,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   // Shipping
                   _SummaryLine(
                     label: 'Shipping',
-                    value: cart.shippingFee == 0
-                        ? 'FREE'
-                        : '\$${cart.shippingFee.toStringAsFixed(2)}',
-                    valueColor: cart.shippingFee == 0
-                        ? AppColors.success
-                        : AppColors.textPrimary,
+                    value: _selectedProvince == null
+                        ? 'Select Province'
+                        : _shippingFee == 0
+                            ? 'FREE'
+                            : '\$${_shippingFee.toStringAsFixed(2)}',
+                    valueColor: _selectedProvince == null
+                        ? AppColors.textHint
+                        : _shippingFee == 0
+                            ? AppColors.success
+                            : AppColors.textPrimary,
                   ),
                   const Divider(height: 16, color: AppColors.divider),
 
                   // Total
                   _SummaryLine(
                     label: 'Total',
-                    value: '\$${cart.total.toStringAsFixed(2)}',
+                    value: '\$${(cart.subtotal + _shippingFee).toStringAsFixed(2)}',
                     isBold: true,
                   ),
                 ],

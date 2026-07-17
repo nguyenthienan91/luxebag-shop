@@ -509,13 +509,6 @@ class _BadgesRow extends StatelessWidget {
               ? const Color(0xFFE8F5E9)
               : const Color(0xFFFFEBEE),
         ),
-        if (product.shippingOptions.freeShipping)
-          const _Badge(
-            label: 'Free Shipping',
-            icon: Icons.local_shipping_outlined,
-            color: AppColors.success,
-            bgColor: Color(0xFFE8F5E9),
-          ),
         if (product.shippingOptions.nextDayShipping)
           const _Badge(
             label: 'Next Day',

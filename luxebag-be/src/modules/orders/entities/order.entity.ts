@@ -57,7 +57,13 @@ export class Order {
   totalAmount!: number
 
   @Prop({ required: true, trim: true })
+  province!: string
+
+  @Prop({ required: true, trim: true })
   shippingAddress!: string
+
+  @Prop({ required: true, default: 0 })
+  shippingFee!: number
 
   @Prop({ type: String, enum: PaymentMethod, required: true })
   paymentMethod!: PaymentMethod

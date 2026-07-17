@@ -34,7 +34,7 @@ class CartViewModel extends ChangeNotifier {
       .where((item) => _selectedItems.contains(item.productId))
       .fold(0, (sum, item) => sum + (item.product.currentPrice * item.quantity));
   
-  double get shippingFee => subtotal == 0 ? 0 : (subtotal >= 500 ? 0 : 15.0);
+  double get shippingFee => 0.0;
   double get total => subtotal + shippingFee;
   
   // ── Selection Logic ──

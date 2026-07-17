@@ -144,6 +144,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           paymentMethod: _order.paymentMethod,
           paymentStatus: _order.paymentStatus,
           shippingAddress: _order.shippingAddress,
+          province: _order.province,
+          shippingFee: _order.shippingFee,
           createdAt: _order.createdAt,
           updatedAt: DateTime.now(),
           paymentUrl: null,
@@ -354,13 +356,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   size: 20, color: AppColors.textSecondary),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  _order.shippingAddress,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                    height: 1.4,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _order.shippingAddress,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (_order.province.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _order.province,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -396,6 +414,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _SummaryRow(
             label: 'Total Items',
             value: '${_order.items.fold<int>(0, (sum, i) => sum + i.quantity)}',
+          ),
+          const SizedBox(height: 12),
+          _SummaryRow(
+            label: 'Shipping Fee',
+            value: _order.shippingFee == 0
+                ? 'FREE'
+                : '\$${_order.shippingFee.toStringAsFixed(2)}',
+            valueColor: _order.shippingFee == 0
+                ? AppColors.success
+                : AppColors.textPrimary,
           ),
           const SizedBox(height: 12),
           _SummaryRow(
