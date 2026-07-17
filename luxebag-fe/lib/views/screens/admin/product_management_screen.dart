@@ -285,10 +285,16 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
             );
           }
           if (vm.products.isEmpty) return const _EmptyView();
-          return _ProductGrid(
-            vm: vm,
-            scrollController: _scrollController,
-            onDelete: (product) => _deleteProduct(context, product),
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              await vm.loadInitial();
+            },
+            child: _ProductGrid(
+              vm: vm,
+              scrollController: _scrollController,
+              onDelete: (product) => _deleteProduct(context, product),
+            ),
           );
         },
       ),
@@ -426,20 +432,18 @@ class _ProductGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.62,
-            ),
+          sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => AdminProductCard(
-                product: vm.products[index],
-                onDelete: () => onDelete(vm.products[index]),
+              (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: AdminProductCard(
+                  product: vm.products[index],
+                  onDelete: () => onDelete(vm.products[index]),
+                ),
               ),
               childCount: vm.products.length,
             ),

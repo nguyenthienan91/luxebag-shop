@@ -32,12 +32,14 @@ class OrderRepository {
   Future<Map<String, dynamic>?> checkout({
     required String shippingAddress,
     required String paymentMethod,
+    List<String>? selectedProductIds,
   }) async {
     final response = await _apiService.dio.post<Map<String, dynamic>>(
       '/orders/checkout',
       data: {
         'shippingAddress': shippingAddress,
         'paymentMethod': paymentMethod,
+        if (selectedProductIds != null) 'selectedProductIds': selectedProductIds,
       },
     );
     return response.data?['data'] as Map<String, dynamic>?;

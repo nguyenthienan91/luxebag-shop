@@ -5,9 +5,27 @@ import 'package:provider/provider.dart';
 import '../../../models/cart_item_model.dart';
 import '../../../utils/app_colors.dart';
 import '../../../viewmodels/cart_viewmodel.dart';
+import '../../../viewmodels/inventory_viewmodel.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cartVM = context.read<CartViewModel>();
+      if (cartVM.items.isNotEmpty) {
+        final products = cartVM.items.map((i) => i.product).toList();
+        context.read<InventoryViewModel>().fetchInventoryForProducts(products);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +44,18 @@ class CartScreen extends StatelessWidget {
                 onPressed: () => context.pop(),
               )
             : null,
+        actions: [
+          TextButton(
+            onPressed: () => _confirmClearAll(context, context.read<CartViewModel>()),
+            child: const Text(
+              'Xóa tất cả',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
         title: const Text(
           'My Cart',
           style: TextStyle(
@@ -46,18 +76,39 @@ class CartScreen extends StatelessWidget {
           if (cart.isEmpty) return const _EmptyCart();
           return Column(
             children: [
+              CheckboxListTile(
+                value: cart.isAllSelected,
+                onChanged: (val) {
+                  if (val == true) {
+                    cart.selectAll();
+                  } else {
+                    cart.deselectAll();
+                  }
+                },
+                title: const Text('Select All', style: TextStyle(fontWeight: FontWeight.w600)),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                activeColor: AppColors.primary,
+              ),
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: cart.items.length,
-                  separatorBuilder: (_, __) => const Divider(
-                    height: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    color: AppColors.divider,
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    await context.read<CartViewModel>().fetchCart();
+                  },
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: cart.items.length,
+                    separatorBuilder: (_, __) => const Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: AppColors.divider,
+                    ),
+                    itemBuilder: (context, i) =>
+                        _CartItemTile(item: cart.items[i]),
                   ),
-                  itemBuilder: (context, i) =>
-                      _CartItemTile(item: cart.items[i]),
                 ),
               ),
               _OrderSummary(cart: cart),
@@ -65,6 +116,43 @@ class CartScreen extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _confirmClearAll(BuildContext context, CartViewModel cart) {
+    if (cart.isEmpty) return;
+    showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          'Clear Cart',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text('Are you sure you want to remove all items from your bag?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              cart.clearAllCart();
+            },
+            child: const Text(
+              'Clear All',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -137,12 +225,54 @@ class _CartItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cart = context.read<CartViewModel>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image
+    return Dismissible(
+      key: ValueKey(item.productId),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => cart.removeItem(item.productId),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        color: Colors.red.shade50,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.delete_outline,
+              color: Colors.red.shade400,
+              size: 28,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Remove',
+              style: TextStyle(
+                color: Colors.red.shade400,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Checkbox
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: cart.selectedItems.contains(item.productId),
+                onChanged: (_) => cart.toggleItemSelection(item.productId),
+                activeColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Product Image
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: CachedNetworkImage(
@@ -253,71 +383,46 @@ class _CartItemTile extends StatelessWidget {
                           ),
                           _QtyButton(
                             icon: Icons.add,
-                            onTap: () => cart.updateQuantity(
-                              item.productId,
-                              item.quantity + 1,
-                            ),
+                            onTap: () {
+                              final invVM = context.read<InventoryViewModel>();
+                              final stock = invVM.getInventoryForProduct(item.productId)?.stock ?? 0;
+                              if (item.quantity + 1 > stock) {
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Not enough stock available (only $stock left).'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                                return;
+                              }
+                              cart.updateQuantity(
+                                item.productId,
+                                item.quantity + 1,
+                              );
+                            },
                           ),
                         ],
                       ),
-                    ),
-                    const Spacer(),
-
-                    // Delete
-                    IconButton(
-                      onPressed: () => _confirmDelete(context, cart),
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: AppColors.error,
-                        size: 22,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, CartViewModel cart) {
-    showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text(
-          'Remove item',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        content: Text('Remove "${item.title}" from your bag?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              cart.removeItem(item.productId);
-            },
-            child: const Text(
-              'Remove',
-              style: TextStyle(
-                color: AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
+          const SizedBox(width: 8),
+          Container(
+            height: 88,
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.chevron_left,
+              color: AppColors.textHint,
+              size: 20,
             ),
           ),
         ],
       ),
-    );
+    ));
   }
 }
 
@@ -359,7 +464,7 @@ class _OrderSummary extends StatelessWidget {
       child: Column(
         children: [
           _SummaryRow(
-            label: 'Subtotal (${cart.totalItems} items)',
+            label: 'Subtotal (${cart.selectedItems.length} items)',
             value: '\$${cart.subtotal.toStringAsFixed(2)}',
           ),
           const SizedBox(height: 8),
@@ -450,9 +555,16 @@ class _CheckoutBar extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: cart.isEmpty ? null : () => context.push('/checkout'),
+          onPressed: () {
+            if (cart.isEmpty) return;
+            if (cart.selectedItems.isEmpty) {
+              _showUnselectedToast(context);
+              return;
+            }
+            context.push('/checkout');
+          },
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: cart.selectedItems.isEmpty ? AppColors.textHint : AppColors.primary,
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppColors.textHint,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -467,6 +579,54 @@ class _CheckoutBar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showUnselectedToast(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (BuildContext dialogContext) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (dialogContext.mounted) {
+            Navigator.of(dialogContext).pop();
+          }
+        });
+
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: 180,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Bạn vẫn chưa chọn sản phẩm nào để mua.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -111,6 +111,7 @@ class _StaffChatListScreenState extends State<StaffChatListScreen>
             onRefresh: vm.loadConversations,
             color: AppColors.primary,
             child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
               itemCount: vm.conversations.length,
               separatorBuilder: (context, index) => const Divider(
                 height: 1,

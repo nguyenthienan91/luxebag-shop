@@ -28,6 +28,7 @@ export class InventoryController {
 
   // GET /inventory/:productId — xem tồn kho của 1 sản phẩm
   @Get(':productId')
+  @Roles(UserRole.STAFF, UserRole.ADMIN, UserRole.CUSTOMER)
   async findOne(@Param('productId') productId: string) {
     return okResponse(await this.inventoryService.findByProduct(productId))
   }

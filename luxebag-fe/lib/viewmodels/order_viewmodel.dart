@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import '../models/order_model.dart';
 import '../models/revenue_stats_model.dart';
 import '../repositories/order_repository.dart';
@@ -113,10 +114,11 @@ class OrderViewModel extends ChangeNotifier {
       final result = await _repository.checkout(
         shippingAddress: address,
         paymentMethod: paymentMethod,
+        selectedProductIds: cartViewModel.selectedItems.toList(),
       );
 
-      // LOGIC ĐỒNG BỘ QUAN TRỌNG: Dọn dẹp giỏ hàng cục bộ ngay lập tức!
-      cartViewModel.clearCart();
+      // LOGIC ĐỒNG BỘ QUAN TRỌNG: Cập nhật giỏ hàng từ server vì nó chỉ xóa những mặt hàng đã thanh toán
+      await cartViewModel.fetchCart();
 
       // Cập nhật lại lịch sử đơn hàng
       await fetchMyOrders();
@@ -258,6 +260,14 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   String _parseError(Object e) {
+    if (e is DioException && e.response?.data != null) {
+      final data = e.response!.data;
+      if (data is Map<String, dynamic> && data['message'] != null) {
+        final msg = data['message'];
+        if (msg is List) return msg.join(', ');
+        return msg.toString();
+      }
+    }
     final msg = e.toString();
     if (msg.contains('connectionTimeout') ||
         msg.contains('connectionError') ||

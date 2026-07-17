@@ -12,10 +12,12 @@ class CartViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   final Set<String> _loadingItems = {}; // Khóa nút bấm từng item
+  final Set<String> _selectedItems = {}; // Sản phẩm được chọn
 
   List<CartItemModel> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  Set<String> get selectedItems => _selectedItems;
 
   int get totalCartItems => _cartItems.length;
 
@@ -26,13 +28,57 @@ class CartViewModel extends ChangeNotifier {
   List<CartItemModel> get items => _cartItems;
   bool get isEmpty => _cartItems.isEmpty;
   int get totalItems => totalCartItems;
-  double get subtotal => totalAmount;
-  double get shippingFee => totalAmount == 0 ? 0 : (totalAmount >= 500 ? 0 : 15.0);
+  
+  // Tính tổng tiền chỉ cho các sản phẩm ĐƯỢC CHỌN
+  double get subtotal => _cartItems
+      .where((item) => _selectedItems.contains(item.productId))
+      .fold(0, (sum, item) => sum + (item.product.currentPrice * item.quantity));
+  
+  double get shippingFee => subtotal == 0 ? 0 : (subtotal >= 500 ? 0 : 15.0);
   double get total => subtotal + shippingFee;
-
-  void clearCart() {
-    _cartItems.clear();
+  
+  // ── Selection Logic ──
+  void toggleItemSelection(String productId) {
+    if (_selectedItems.contains(productId)) {
+      _selectedItems.remove(productId);
+    } else {
+      _selectedItems.add(productId);
+    }
     notifyListeners();
+  }
+
+  void selectAll() {
+    _selectedItems.addAll(_cartItems.map((e) => e.productId));
+    notifyListeners();
+  }
+
+  void deselectAll() {
+    _selectedItems.clear();
+    notifyListeners();
+  }
+
+  bool get isAllSelected => 
+      _cartItems.isNotEmpty && _selectedItems.length == _cartItems.length;
+
+  void clearCartLocal() {
+    _cartItems.clear();
+    _selectedItems.clear();
+    notifyListeners();
+  }
+
+  Future<void> clearAllCart() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _repository.clearCart();
+      _cartItems.clear();
+      _selectedItems.clear();
+    } catch (e) {
+      _errorMessage = _parseError(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> updateQuantity(String productId, int quantity) =>
@@ -49,6 +95,8 @@ class CartViewModel extends ChangeNotifier {
 
     try {
       _cartItems = await _repository.fetchCart();
+      // Loại bỏ những item đã bị xóa khỏi _selectedItems (nếu có)
+      _selectedItems.retainWhere((id) => _cartItems.any((item) => item.productId == id));
       print('=== DEBUG CART: fetchCart SUCCESS, items: ${_cartItems.length} ===');
     } catch (e, stack) {
       print('=== DEBUG CART ERROR ===');
@@ -106,14 +154,26 @@ class CartViewModel extends ChangeNotifier {
 
   Future<void> removeFromCart(String productId) async {
     _loadingItems.add(productId);
+    
+    // Optimistic removal
+    final removedIndex = _cartItems.indexWhere((item) => item.product.id == productId);
+    CartItemModel? removedItem;
+    if (removedIndex != -1) {
+      removedItem = _cartItems.removeAt(removedIndex);
+      _selectedItems.remove(productId);
+    }
     notifyListeners();
 
     try {
       await _repository.removeFromCart(productId);
-      _cartItems.removeWhere((item) => item.product.id == productId);
     } catch (e) {
       _errorMessage = _parseError(e);
-      await fetchCart();
+      // Revert if error
+      if (removedItem != null && removedIndex != -1) {
+        _cartItems.insert(removedIndex, removedItem);
+      } else {
+        await fetchCart();
+      }
     } finally {
       _loadingItems.remove(productId);
       notifyListeners();

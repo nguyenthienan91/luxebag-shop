@@ -24,181 +24,186 @@ class AdminProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.inputBorder),
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Image ──────────────────────────────────────────────────
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: CachedNetworkImage(
-                      imageUrl: product.thumbnailUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: AppColors.surface,
-                        child: const Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.textHint,
-                            ),
-                          ),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: AppColors.surface,
-                        child: const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: AppColors.textHint,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Discount badge
-                if (product.isOnSale)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '-${product.discountPercentage.toInt()}%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Admin action button (instead of wishlist)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: _AdminActionsButton(
-                    product: product,
-                    onEdit: () => context.push('/admin/product/edit', extra: product),
-                    onDelete: onDelete,
-                  ),
-                ),
-
-                // Out of stock overlay
-                if (!product.inStock)
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      child: Container(
-                        color: Colors.white.withOpacity(0.6),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'OUT OF STOCK',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
-            // ── Info ───────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            SizedBox(
+              width: 120,
+              child: Stack(
                 children: [
-                  Text(
-                    product.brand,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.5,
+                  ClipRRect(
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(12),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    product.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                      height: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '\$${product.currentPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      if (product.isOnSale) ...[
-                        const SizedBox(width: 5),
-                        Text(
-                          '\$${product.retailPrice.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textHint,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (product.shippingOptions.freeShipping)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.local_shipping_outlined,
-                            size: 11,
-                            color: AppColors.success,
-                          ),
-                          SizedBox(width: 3),
-                          Text(
-                            'Free shipping',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.success,
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: CachedNetworkImage(
+                        imageUrl: product.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          color: AppColors.surface,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.textHint,
+                              ),
                             ),
                           ),
-                        ],
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          color: AppColors.surface,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: AppColors.textHint,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Discount badge
+                  if (product.isOnSale)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '-${product.discountPercentage.toInt()}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Admin action button (instead of wishlist)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: _AdminActionsButton(
+                      product: product,
+                      onEdit: () => context.push('/admin/product/edit', extra: product),
+                      onDelete: onDelete,
+                    ),
+                  ),
+
+                  // Out of stock overlay
+                  if (!product.inStock)
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(12),
+                        ),
+                        child: Container(
+                          color: Colors.white.withOpacity(0.6),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'OUT OF STOCK',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                 ],
+              ),
+            ),
+
+            // ── Info ───────────────────────────────────────────────────
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.brand,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      product.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '\$${product.currentPrice.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (product.isOnSale) ...[
+                          const SizedBox(width: 5),
+                          Text(
+                            '\$${product.retailPrice.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textHint,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (product.shippingOptions.freeShipping)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: const [
+                            Icon(
+                              Icons.local_shipping_outlined,
+                              size: 11,
+                              color: AppColors.success,
+                            ),
+                            SizedBox(width: 3),
+                            Text(
+                              'Free shipping',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],

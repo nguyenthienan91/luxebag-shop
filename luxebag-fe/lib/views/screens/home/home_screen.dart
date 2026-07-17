@@ -281,7 +281,13 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
         if (vm.products.isEmpty) return const _EmptyView();
-        return _ProductGrid(vm: vm, scrollController: _scrollController);
+        return RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async {
+            await vm.loadInitial();
+          },
+          child: _ProductGrid(vm: vm, scrollController: _scrollController),
+        );
       },
     );
   }
@@ -412,6 +418,7 @@ class _ProductGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       controller: scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

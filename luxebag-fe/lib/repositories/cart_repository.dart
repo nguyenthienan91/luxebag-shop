@@ -39,4 +39,8 @@ class CartRepository {
   Future<void> removeFromCart(String productId) async {
     await _apiService.dio.delete('/cart/remove/$productId');
   }
+
+  Future<void> clearCart() async {
+    await _apiService.dio.delete('/cart/clear');
+  }
 }
