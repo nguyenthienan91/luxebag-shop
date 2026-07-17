@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<CartViewModel>().clearCart();
+              context.read<CartViewModel>().clearCartLocal();
               context.read<ProductViewModel>().clearWishlist();
               context.read<AuthViewModel>().logout();
               context.go('/login');

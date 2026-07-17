@@ -82,14 +82,14 @@ export class AuthService {
   async signIn(signInDto: SignInDto) {
     const { email, password } = signInDto
     const user = await this.usersService.getUser({ email })
-    if (!user) throw new UnauthorizedException()
+    if (!user) throw new UnauthorizedException('Email hoặc mật khẩu không chính xác')
 
     if (!user.isActive) {
       throw new ForbiddenException('Account has been banned')
     }
 
     const isMatch = await this.stringUtilService.compare(password, user.password)
-    if (!isMatch) throw new UnauthorizedException()
+    if (!isMatch) throw new UnauthorizedException('Email hoặc mật khẩu không chính xác')
 
     if (!user.isVerified) {
       // 1. Tạo mới OTP xác thực email và lưu vào database

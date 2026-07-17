@@ -302,7 +302,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 children: [
                   // Item list (compact)
-                  ...cart.items.map(
+                  ...cart.items
+                      .where((item) => cart.selectedItems.contains(item.productId))
+                      .map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(

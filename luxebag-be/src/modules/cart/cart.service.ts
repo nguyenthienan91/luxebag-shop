@@ -58,7 +58,13 @@ export class CartService {
     return cart.populate('items.productId')
   }
 
-  async clearCart(userId: string): Promise<void> {
-    await this.cartModel.findOneAndUpdate({ userId: new Types.ObjectId(userId) }, { items: [] }).exec()
+  async clearCart(userId: string): Promise<CartDocument> {
+    const userObjectId = new Types.ObjectId(userId)
+    const cart = await this.cartModel.findOne({ userId: userObjectId }).exec()
+    if (!cart) throw new NotFoundException('Cart not found')
+
+    cart.items = []
+    await cart.save()
+    return cart.populate('items.productId')
   }
 }

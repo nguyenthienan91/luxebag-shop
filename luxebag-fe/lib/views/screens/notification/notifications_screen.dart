@@ -171,15 +171,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             return const _EmptyNotifications();
           }
 
-          return ListView.separated(
-            itemCount: vm.notifications.length,
-            separatorBuilder: (_, __) => const Divider(
-              height: 1,
-              indent: 72,
-              color: AppColors.divider,
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              await vm.loadNotifications();
+            },
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: vm.notifications.length,
+              separatorBuilder: (_, __) => const Divider(
+                height: 1,
+                indent: 72,
+                color: AppColors.divider,
+              ),
+              itemBuilder: (context, i) =>
+                  _NotificationTile(notification: vm.notifications[i]),
             ),
-            itemBuilder: (context, i) =>
-                _NotificationTile(notification: vm.notifications[i]),
           );
         },
       ),

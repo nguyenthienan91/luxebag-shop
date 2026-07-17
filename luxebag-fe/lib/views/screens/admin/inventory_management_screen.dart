@@ -231,10 +231,15 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
             return const Center(child: Text('Không tìm thấy sản phẩm nào.'));
           }
 
-          return ListView.builder(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: prodVM.products.length + 1,
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              _loadData();
+            },
+            child: ListView.builder(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: prodVM.products.length + 1,
             itemBuilder: (context, index) {
               if (index == prodVM.products.length) {
                 return Padding(
@@ -270,9 +275,10 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                 onTap: () => _showAdjustStockDialog(context, product, inventory),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
+    ),
     );
   }
 }
