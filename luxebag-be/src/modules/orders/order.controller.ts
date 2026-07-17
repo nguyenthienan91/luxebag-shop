@@ -70,7 +70,7 @@ export class OrderController {
   // GET /orders/:id
   @Get(':id')
   async findOne(@Param('id') id: string, @User() user: UserInfo) {
-    const isAdmin = user.role === UserRole.ADMIN
+    const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.STAFF
     return okResponse(await this.orderService.findById(id, user.userID, isAdmin))
   }
 

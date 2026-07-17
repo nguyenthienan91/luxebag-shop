@@ -652,13 +652,7 @@ class _BottomBar extends StatelessWidget {
                       final currentQty = itemInCart?.quantity ?? 0;
                       
                       if (currentQty + 1 > stock) {
-                        ScaffoldMessenger.of(context).clearSnackBars();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Not enough stock available (only $stock left).'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
+                        _showErrorToast(context, 'Not enough stock available (only $stock left).');
                         return;
                       }
 
@@ -714,3 +708,51 @@ class _BottomBar extends StatelessWidget {
     );
   }
 }
+
+void _showErrorToast(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (BuildContext dialogContext) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (dialogContext.mounted) {
+            Navigator.of(dialogContext).pop();
+          }
+        });
+
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: 180,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
