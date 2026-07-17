@@ -387,13 +387,7 @@ class _CartItemTile extends StatelessWidget {
                               final invVM = context.read<InventoryViewModel>();
                               final stock = invVM.getInventoryForProduct(item.productId)?.stock ?? 0;
                               if (item.quantity + 1 > stock) {
-                                ScaffoldMessenger.of(context).clearSnackBars();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Not enough stock available (only $stock left).'),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
+                                _showErrorToast(context, 'Not enough stock available (only $stock left).');
                                 return;
                               }
                               cart.updateQuantity(
@@ -544,7 +538,7 @@ class _CheckoutBar extends StatelessWidget {
           onPressed: () {
             if (cart.isEmpty) return;
             if (cart.selectedItems.isEmpty) {
-              _showUnselectedToast(context);
+              _showErrorToast(context, 'Bạn vẫn chưa chọn sản phẩm nào để mua.');
               return;
             }
             context.push('/checkout');
@@ -567,8 +561,9 @@ class _CheckoutBar extends StatelessWidget {
       ),
     );
   }
+}
 
-  void _showUnselectedToast(BuildContext context) {
+void _showErrorToast(BuildContext context, String message) {
     showDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -589,17 +584,17 @@ class _CheckoutBar extends StatelessWidget {
                 color: Colors.black.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.error,
                     color: Colors.white,
                     size: 40,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Bạn vẫn chưa chọn sản phẩm nào để mua.',
+                    message,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -615,4 +610,3 @@ class _CheckoutBar extends StatelessWidget {
       },
     );
   }
-}

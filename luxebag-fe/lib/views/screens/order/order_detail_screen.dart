@@ -464,7 +464,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ],
 
-          if (context.read<AuthViewModel>().currentUser?.role != 'admin') ...[
+          if (!['admin', 'staff'].contains(context.read<AuthViewModel>().currentUser?.role)) ...[
             const SizedBox(height: 32),
             OutlinedButton.icon(
               onPressed: () => context.push('/chat?orderId=${_order.id}'),
